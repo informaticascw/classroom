@@ -8,6 +8,10 @@ Example of basic script showing 10 of your classrooms:<br>
 (requires login google account on stanislascollege.net domain)<br>
 https://classroomautomation.vangeest.repl.co/
 
+[Edit in replit](https://replit.com/new/github/SCW-IN/ClassroomAutomation)<br>
+API and Oauth restrictions apply, therefor it won't work out of the box.
+See documentation how to make is work for you.
+
 # Documentation
 - Official quickstart programming classroom API in javascript from Google<br>
 https://developers.google.com/classroom/quickstart/js#authorize_credentials_for_a_web_application

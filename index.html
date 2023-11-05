@@ -144,20 +144,20 @@
           pageSize: 10,
         });
       } catch (err) {
-        document.getElementById('content').innerText = err.message;
+        document.getElementById('content').innerText += err.message;
         return;
       }
 
       const courses = response.result.courses;
       if (!courses || courses.length == 0) {
-        document.getElementById('content').innerText = 'No courses found.';
+        document.getElementById('content').innerText += 'No courses found.';
         return;
       }
       // Flatten to string to display
       const output = courses.reduce(
         (str, course) => `${str}${course.name}\n`,
         'Courses:\n');
-      document.getElementById('content').innerText = output;
+      document.getElementById('content').innerText += output;
 
       // populate select-tag with classroom-names
       node = document.getElementById('source-classroom-list')
@@ -171,22 +171,21 @@
         node.appendChild(clone);
       }
 
-      /* lees topics van een course */
+      /* read topics of a course */
       let topicsResponse;
       try {
         topicsResponse = await gapi.client.classroom.courses.topics.list({
-          courseId: `${courses[4].id}`, // TODO change id into the one selected
+          courseId: `${courses[8].id}`, // TODO change id into the one selected
           pageSize: 10,
         });
       } catch (err) {
-        document.getElementById('content').innerText = err.message;
+        document.getElementById('content').innerText += err.message;
         return;
       }
 
-      // ERROR: topics worden wel teruggestuurd, maar de response wordt niet afgedrukt
       const topics = topicsResponse.result.topic;
       if (!topics || topics.length == 0) {
-        document.getElementById('content').innerText = 'No topics found.';
+        document.getElementById('content').innerText += 'No topics found.';
         return;
       }
       console.log(topics);
@@ -195,7 +194,32 @@
       const topicsOutput = topics.reduce(
         (str, topic) => `${str}${topic.name}\n`,
         'Topics:\n');
-      document.getElementById('content').innerText = topicsOutput;
+      document.getElementById('content').innerText += topicsOutput;
+
+      /* read materials of a course */
+      let materialsResponse;
+      try {
+        materialsResponse = await gapi.client.classroom.courses.courseWorkMaterials.list({
+          courseId: `${courses[8].id}`, // TODO change id into the one selected
+          pageSize: 50,
+        });
+      } catch (err) {
+        document.getElementById('content').innerText += err.message;
+        return;
+      }
+
+      const materials = materialsResponse.result.courseWorkMaterial;
+      if (!materials || materials.length == 0) {
+        document.getElementById('content').innerText += 'No material found.';
+        return;
+      }
+      console.log(materials);
+
+      // Flatten to string to display
+      const materialsOutput = materials.reduce(
+        (str, material) => `${str}${material.title}\n`,
+        'Materials:\n');
+      document.getElementById('content').innerText += materialsOutput;
     }
   </script>
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>

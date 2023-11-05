@@ -3,5 +3,5 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/http-server:1": {}
 	},
-	"postStartCommand": ["http-sever -c-1"] // start http-server without cache on port 8080
+	"postStartCommand": ["http-server -c-1"] // start http-server without cache on port 8080
 }

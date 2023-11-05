@@ -32,44 +32,22 @@
   </select>
 
   <!--List of materials grouped by topic-->
-  <div class="container">
-    <ul>
+  <ul id="topic-list">
+    <template id="topic-template">
       <li>
-        <input type="checkbox" id="option"><label for="option"> Electronics</label>
-        <ul>
-          <li><label><input type="checkbox" class="subOption"> Laptops</label></li>
-          <li><label><input type="checkbox" class="subOption"> TVs</label></li>
-          <li><label><input type="checkbox" class="subOption"> Microphones</label></li>
-          <template id="source-classroom-suboption-template">
-            <li><label><input type="checkbox" class="subOption">template</label></li>
+        <input class="topic-input" type="checkbox" id="topic-xxxxxx" value="xxxxxx">
+        <label class="topic-label" for="topicxxxxxx">Electronics</label>
+        <ul class="material-list" id="topic2-xxxxxx">
+          <template id="material-template">
+            <li>
+              <input class="material-input" type="checkbox" id="material-xxxxxx" value="xxxxxx">
+              <label class="material-label" for="material-xxxxxx"> Laptops</label>
+            </li>
           </template>
         </ul>
       </li>
-      <li>
-        <input type="checkbox" id="option"><label for="option"> Electronics</label>
-        <ul>
-          <li><label><input type="checkbox" class="subOption"> Laptops</label></li>
-          <li><label><input type="checkbox" class="subOption"> TVs</label></li>
-          <li><label><input type="checkbox" class="subOption"> Microphones</label></li>
-          <template id="source-classroom-suboption-template">
-            <li><label><input type="checkbox" class="subOption">template</label></li>
-          </template>
-        </ul>
-      </li>
-      <template id="source-classroom-option-template">
-        <li>
-
-          <input type="checkbox" id="option"><label for="option">template topic</label>
-          <ul>
-            <li><label><input type="checkbox" class="subOption">template material1</label></li>
-            <template id="source-classroom-suboption-template2">
-              <li><label><input type="checkbox" class="subOption">template</label></li>
-            </template>
-          </ul>
-        </li>
-      </template>
-    </ul>
-  </div>
+    </template>
+  </ul>
 
   <!--Log output-->
   <pre id="content" style="white-space: pre-wrap;"></pre>
@@ -182,17 +160,18 @@
      * Handles for user interaction: selection of source classroom
      */
 
-    function handleSelectClassroom(selectObject) {
+    async function handleSelectClassroom(selectObject) {
       var courseId = selectObject.value;
       console.log(`user selected courseId ${courseId}`);
-      listTopics(courseId);
-      listMaterials(courseId);
+      await listTopics(courseId);
+      await listMaterials(courseId);
     }
 
     /**
      * Handles for user interaction: selection of topic or material
      */
 
+    /*
     var checkboxes = document.querySelectorAll('input.subOption'),
       checkall = document.getElementById('option');
 
@@ -210,7 +189,7 @@
         checkboxes[i].checked = this.checked;
       }
     }
-
+    */
 
 
     /**
@@ -232,6 +211,8 @@
         document.getElementById('content').innerText += 'No courses found.';
         return;
       }
+      console.log(courses)
+
       // Flatten to string to display
       const output = courses.reduce(
         (str, course) => `${str}${course.name}\n`,
@@ -241,12 +222,10 @@
       // populate select-tag with classroom-names
       node = document.getElementById('source-classroom-list')
       template = document.getElementById('source-classroom-item-template')
-      console.log(courses)
       for (var i = 0; i < courses.length; i++) {
         clone = template.content.cloneNode(true);
         clone.querySelector(".option").value = courses[i].id;
         clone.querySelector(".option").textContent = `${courses[i].name}`;
-        console.log(courses[i].name)
         node.appendChild(clone);
       }
     }
@@ -279,6 +258,19 @@
         (str, topic) => `${str}${topic.name}\n`,
         'Topics:\n');
       document.getElementById('content').innerText += topicsOutput;
+
+      // populate input and labels for topics
+      node = document.getElementById('topic-list')
+      template = document.getElementById('topic-template')
+      for (var i = 0; i < topics.length; i++) {
+        clone = template.content.cloneNode(true);
+        clone.querySelector(".material-list").id = `topic2-${topics[i].topicId}`;;
+        clone.querySelector(".topic-input").value = topics[i].topicId;
+        clone.querySelector(".topic-input").id = `topic-${topics[i].topicId}`;
+        clone.querySelector(".topic-label").for = `topic-${topics[i].topicId}`;
+        clone.querySelector(".topic-label").textContent = `${topics[i].name}`;
+        node.appendChild(clone);
+      }
     }
 
     /**
@@ -309,6 +301,26 @@
         (str, material) => `${str}${material.title}\n`,
         'Materials:\n');
       document.getElementById('content').innerText += materialsOutput;
+
+      // populate input and labels for materials
+      // TODO: test for material which has no topic
+      nodes = document.querySelectorAll('.material-list');
+      console.log("debug nodes");
+      console.log(nodes);
+      for (var i = 0; i < nodes.length; i++) {
+        node = nodes[i]; 
+        template = document.getElementById('material-template')
+        for (var i = 0; i < materials.length; i++) {
+          if (`topic2-${materials[i].topicId}` === node.id) {
+            clone = template.content.cloneNode(true);
+            clone.querySelector(".material-input").value = materials[i].id;
+            clone.querySelector(".material-input").id = `topic-${materials[i].id}`;
+            clone.querySelector(".material-label").for = `topic-${materials[i].id}`;
+            clone.querySelector(".material-label").textContent = `${materials[i].title}`;
+            node.appendChild(clone);
+          }
+        }
+      }
     }
 
   </script>

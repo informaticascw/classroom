@@ -164,13 +164,16 @@ async function listCourses() {
         'Courses:\n');
     document.getElementById('content').innerText += output;
 
-    // populate select-tag with classroom-names
+    // populate select-tag with classroom-names, remove old item in list
     node = document.getElementById('source-classroom-list')
+    while (node.querySelector(':scope > .option')) {
+        node.removeChild(node.querySelector(':scope > .option'));
+    }
     template = document.getElementById('source-classroom-item-template')
-    for (var i = 0; i < courses.length; i++) {
+    for (let course of courses) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".option").value = courses[i].id;
-        clone.querySelector(".option").textContent = `${courses[i].name}`;
+        clone.querySelector(".option").value = course.id;
+        clone.querySelector(".option").textContent = `${course.name}`;
         node.appendChild(clone);
     }
 }
@@ -204,16 +207,19 @@ async function listTopics(courseId) {
         'Topics:\n');
     document.getElementById('content').innerText += topicsOutput;
 
-    // populate input and labels for topics
-    node = document.getElementById('topic-list')
+    // populate input and labels for topics, and remove old items in list
+    node = document.getElementById('topic-list');
+    while (node.querySelector(':scope > .topic-item')) {
+        node.removeChild(node.querySelector(':scope > .topic-item'));
+    }
     template = document.getElementById('topic-template')
-    for (var i = 0; i < topics.length; i++) {
+    for (let topic of topics) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".material-list").id = `topic2-${topics[i].topicId}`;
-        clone.querySelector(".topic-input").value = topics[i].topicId;
-        clone.querySelector(".topic-input").id = `topic-${topics[i].topicId}`;
-        clone.querySelector(".topic-label").htmlFor = `topic-${topics[i].topicId}`;
-        clone.querySelector(".topic-label").textContent = `${topics[i].name}`;
+        clone.querySelector(".material-list").id = `topic2-${topic.topicId}`;
+        clone.querySelector(".topic-input").value = topic.topicId;
+        clone.querySelector(".topic-input").id = `topic-${topic.topicId}`;
+        clone.querySelector(".topic-label").htmlFor = `topic-${topic.topicId}`;
+        clone.querySelector(".topic-label").textContent = `${topic.name}`;
         node.appendChild(clone);
     }
 }
@@ -247,21 +253,21 @@ async function listMaterials(courseId) {
         'Materials:\n');
     document.getElementById('content').innerText += materialsOutput;
 
-    // populate input and labels for materials
+    // populate input and labels for materials, and remove old items in list
     // TODO: test for material which has no topic
     nodes = document.querySelectorAll('.material-list');
-    console.log("debug nodes");
-    console.log(nodes);
-    for (let j = 0; j < nodes.length; j++) {
-        node = nodes[j];
+    for (let node of nodes) {
+        while (node.querySelector(':scope > .material-item')) {
+            node.removeChild(node.querySelector(':scope > .material-item'));
+        }
         template = document.getElementById('material-template')
-        for (let i = 0; i < materials.length; i++) {
-            if (`topic2-${materials[i].topicId}` === node.id) {
+        for (let material of materials) {
+            if (`topic2-${material.topicId}` === node.id) {
                 clone = template.content.cloneNode(true);
-                clone.querySelector(".material-input").value = materials[i].id;
-                clone.querySelector(".material-input").id = `topic-${materials[i].id}`;
-                clone.querySelector(".material-label").htmlFor = `topic-${materials[i].id}`;
-                clone.querySelector(".material-label").textContent = `${materials[i].title}`;
+                clone.querySelector(".material-input").value = material.id;
+                clone.querySelector(".material-input").id = `topic-${material.id}`;
+                clone.querySelector(".material-label").htmlFor = `topic-${material.id}`;
+                clone.querySelector(".material-label").textContent = `${material.title}`;
                 node.appendChild(clone);
             }
         }

@@ -15,7 +15,7 @@
 
   <label for="source-classroom">Kies je bron classroom:</label>
 
-  <select name="classrooms" id="source-classroom-list">
+  <select name="classrooms" id="source-classroom-list" onchange="handleSelectClassroom(this)">
     <option value="">--Kies een classroom--</option>
     <option value="0">Dummy</option>
     <template id="source-classroom-item-template">
@@ -133,9 +133,20 @@
       }
     }
 
+
     /**
-     * Print the names of the first 10 courses the user has access to. If
-     * no courses are found an appropriate message is printed.
+     * Handles for user interaction
+     */
+
+    function handleSelectClassroom(selectObject) {
+      var courseId = selectObject.value;
+      console.log(`user selected courseId ${courseId}`);
+      listTopics(courseId);
+      listMaterials(courseId);
+    }
+
+    /**
+     * Load courses using gapi.
      */
     async function listCourses() {
       let response;
@@ -170,12 +181,17 @@
         console.log(courses[i].name)
         node.appendChild(clone);
       }
+    }
 
+    /**
+     * Load topics using gapi.
+     */
+    async function listTopics(courseId) {
       /* read topics of a course */
       let topicsResponse;
       try {
         topicsResponse = await gapi.client.classroom.courses.topics.list({
-          courseId: `${courses[8].id}`, // TODO change id into the one selected
+          courseId: `${courseId}`, // TODO change id into the one selected
           pageSize: 10,
         });
       } catch (err) {
@@ -195,12 +211,17 @@
         (str, topic) => `${str}${topic.name}\n`,
         'Topics:\n');
       document.getElementById('content').innerText += topicsOutput;
+    }
 
+    /**
+     * Load materials using gapi.
+     */
+    async function listMaterials(courseId) {
       /* read materials of a course */
       let materialsResponse;
       try {
         materialsResponse = await gapi.client.classroom.courses.courseWorkMaterials.list({
-          courseId: `${courses[8].id}`, // TODO change id into the one selected
+          courseId: `${courseId}`, // TODO change id into the one selected
           pageSize: 50,
         });
       } catch (err) {
@@ -221,6 +242,7 @@
         'Materials:\n');
       document.getElementById('content').innerText += materialsOutput;
     }
+
   </script>
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
   <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>

@@ -1,4 +1,4 @@
-html {
-  height: 100%;
-  width: 100%;
+ul#topic-list,
+ul.material-list {
+  list-style: none;
 }

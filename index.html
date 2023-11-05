@@ -307,10 +307,10 @@
       nodes = document.querySelectorAll('.material-list');
       console.log("debug nodes");
       console.log(nodes);
-      for (var i = 0; i < nodes.length; i++) {
-        node = nodes[i]; 
+      for (let j = 0; j < nodes.length; j++) {
+        node = nodes[j]; 
         template = document.getElementById('material-template')
-        for (var i = 0; i < materials.length; i++) {
+        for (let i = 0; i < materials.length; i++) {
           if (`topic2-${materials[i].topicId}` === node.id) {
             clone = template.content.cloneNode(true);
             clone.querySelector(".material-input").value = materials[i].id;

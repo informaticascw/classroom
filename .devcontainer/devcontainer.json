@@ -3,5 +3,6 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/http-server:1": {}
 	},
-	"postStartCommand": ["http-server -c-1"] // start http-server without cache on port 8080
+	"postStartCommand": "nohup bash -c 'http-server -c-1 > .nohup_webserver.out 2>&1 & rm nohup.out &'" // start webserver without cache on port 8080 nocache and leave it running in background
+
 }

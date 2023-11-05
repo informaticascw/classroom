@@ -18,7 +18,9 @@
   <select name="classrooms" id="source-classroom-list">
     <option value="">--Kies een classroom--</option>
     <option value="0">Dummy</option>
-    <template id="source-classroom-item-template"><option class="option" value="1">Beschrijving</option></template>
+    <template id="source-classroom-item-template">
+      <option class="option" value="1">Beschrijving</option>
+    </template>
   </select>
   <ul id="my-list">
     regelvoor
@@ -43,7 +45,7 @@
 
     // Authorization scopes required by the API; multiple scopes can be
     // included, separated by spaces.
-    const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly';
+    const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly https://www.googleapis.com/auth/classroom.topics.readonly';
 
     let tokenClient;
     let gapiInited = false;
@@ -158,16 +160,42 @@
       document.getElementById('content').innerText = output;
 
       // populate select-tag with classroom-names
-      node=document.getElementById('source-classroom-list')
+      node = document.getElementById('source-classroom-list')
       template = document.getElementById('source-classroom-item-template')
       console.log(courses)
-      for(var i = 0; i < courses.length; i++) {
+      for (var i = 0; i < courses.length; i++) {
         clone = template.content.cloneNode(true);
         clone.querySelector(".option").value = courses[i].id;
         clone.querySelector(".option").textContent = `${courses[i].name}`;
         console.log(courses[i].name)
         node.appendChild(clone);
       }
+
+      /* lees topics van een course */
+      let topicsResponse;
+      try {
+        topicsResponse = await gapi.client.classroom.courses.topics.list({
+          courseId: `${courses[4].id}`, // TODO change id into the one selected
+          pageSize: 10,
+        });
+      } catch (err) {
+        document.getElementById('content').innerText = err.message;
+        return;
+      }
+
+      // ERROR: topics worden wel teruggestuurd, maar de response wordt niet afgedrukt
+      const topics = topicsResponse.result.topics;
+      if (!topics || topics.length == 0) {
+        document.getElementById('content').innerText = 'No topics found.';
+        return;
+      }
+      console.log(topics);
+
+      // Flatten to string to display
+      const topicsOutput = topics.reduce(
+        (str, topic) => `${str}${topic.name}\n`,
+        'Topics:\n');
+      document.getElementById('content').innerText = topicsOutput;
     }
   </script>
   <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>

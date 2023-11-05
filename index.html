@@ -7,14 +7,22 @@
 </head>
 
 <body>
+
+  <style>
+    ul {
+      list-style: none;
+    }
+  </style>
+
+
   <p>Classroom API Quickstart</p>
 
   <!--Add buttons to initiate auth sequence and sign out-->
   <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
   <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
 
+  <!--Choose source classroom-->
   <label for="source-classroom">Kies je bron classroom:</label>
-
   <select name="classrooms" id="source-classroom-list" onchange="handleSelectClassroom(this)">
     <option value="">--Kies een classroom--</option>
     <option value="0">Dummy</option>
@@ -22,12 +30,48 @@
       <option class="option" value="1">Beschrijving</option>
     </template>
   </select>
-  <ul id="my-list">
-    regelvoor
-    <li>li-item</li>
-    regelna
-  </ul>
 
+  <!--List of materials grouped by topic-->
+  <div class="container">
+    <ul>
+      <li>
+        <input type="checkbox" id="option"><label for="option"> Electronics</label>
+        <ul>
+          <li><label><input type="checkbox" class="subOption"> Laptops</label></li>
+          <li><label><input type="checkbox" class="subOption"> TVs</label></li>
+          <li><label><input type="checkbox" class="subOption"> Microphones</label></li>
+          <template id="source-classroom-suboption-template">
+            <li><label><input type="checkbox" class="subOption">template</label></li>
+          </template>
+        </ul>
+      </li>
+      <li>
+        <input type="checkbox" id="option"><label for="option"> Electronics</label>
+        <ul>
+          <li><label><input type="checkbox" class="subOption"> Laptops</label></li>
+          <li><label><input type="checkbox" class="subOption"> TVs</label></li>
+          <li><label><input type="checkbox" class="subOption"> Microphones</label></li>
+          <template id="source-classroom-suboption-template">
+            <li><label><input type="checkbox" class="subOption">template</label></li>
+          </template>
+        </ul>
+      </li>
+      <template id="source-classroom-option-template">
+        <li>
+
+          <input type="checkbox" id="option"><label for="option">template topic</label>
+          <ul>
+            <li><label><input type="checkbox" class="subOption">template material1</label></li>
+            <template id="source-classroom-suboption-template2">
+              <li><label><input type="checkbox" class="subOption">template</label></li>
+            </template>
+          </ul>
+        </li>
+      </template>
+    </ul>
+  </div>
+
+  <!--Log output-->
   <pre id="content" style="white-space: pre-wrap;"></pre>
 
   <script type="text/javascript">
@@ -135,7 +179,7 @@
 
 
     /**
-     * Handles for user interaction
+     * Handles for user interaction: selection of source classroom
      */
 
     function handleSelectClassroom(selectObject) {
@@ -144,6 +188,30 @@
       listTopics(courseId);
       listMaterials(courseId);
     }
+
+    /**
+     * Handles for user interaction: selection of topic or material
+     */
+
+    var checkboxes = document.querySelectorAll('input.subOption'),
+      checkall = document.getElementById('option');
+
+    for (var i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].onclick = function () {
+        var checkedCount = document.querySelectorAll('input.subOption:checked').length;
+
+        checkall.checked = checkedCount > 0;
+        checkall.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+      }
+    }
+
+    checkall.onclick = function () {
+      for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = this.checked;
+      }
+    }
+
+
 
     /**
      * Load courses using gapi.

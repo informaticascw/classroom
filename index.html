@@ -264,10 +264,10 @@
       template = document.getElementById('topic-template')
       for (var i = 0; i < topics.length; i++) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".material-list").id = `topic2-${topics[i].topicId}`;;
+        clone.querySelector(".material-list").id = `topic2-${topics[i].topicId}`;
         clone.querySelector(".topic-input").value = topics[i].topicId;
         clone.querySelector(".topic-input").id = `topic-${topics[i].topicId}`;
-        clone.querySelector(".topic-label").for = `topic-${topics[i].topicId}`;
+        clone.querySelector(".topic-label").htmlFor = `topic-${topics[i].topicId}`;
         clone.querySelector(".topic-label").textContent = `${topics[i].name}`;
         node.appendChild(clone);
       }
@@ -315,7 +315,7 @@
             clone = template.content.cloneNode(true);
             clone.querySelector(".material-input").value = materials[i].id;
             clone.querySelector(".material-input").id = `topic-${materials[i].id}`;
-            clone.querySelector(".material-label").for = `topic-${materials[i].id}`;
+            clone.querySelector(".material-label").htmlFor = `topic-${materials[i].id}`;
             clone.querySelector(".material-label").textContent = `${materials[i].title}`;
             node.appendChild(clone);
           }

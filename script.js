@@ -112,6 +112,49 @@ async function handleSelectClassroom(selectObject) {
     await listMaterials(courseId);
 }
 
+async function handleCheckTopic(selectObject) {
+    console.log(selectObject)
+    let topicItem = selectObject.parentNode
+    console.log(topicItem)
+    let topicParent = topicItem.parentNode
+    console.log(topicParent)
+    let materialInputs = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input');
+    for (let materialInput of materialInputs) {
+        materialInput.checked = selectObject.checked
+    }
+}
+
+async function handleCheckMaterial(selectObject) {
+    console.log(selectObject)
+    let parent1 = selectObject.parentNode;
+    let parent2 = parent1.parentNode; 
+    let parent3 = parent2.parentNode;
+    console.log(`Parent: ${selectObject.parentElement}`)
+    console.log(`Parent.Parent: ${selectObject.parentElement.ParentElement}`)
+
+    console.log(`selectObject: ${selectObject}`)
+    console.log(`Parent1: ${parent1}`)
+    console.log(`Parent2: ${parent2}`)
+    console.log(`Parent3: ${parent3}`)
+    console.log(parent3)
+    let topicItem = parent3
+    let topicInput = topicItem.querySelector(':scope > input.topic-input');
+    let materialInputs = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input');
+    let materialCounted = materialInputs.length
+    let materialChecks = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input:checked');
+    let materialChecked = materialChecks.length
+    if (materialChecked > 0) {
+        selectObject.checked = true;
+    } else {
+        selectObject.checked = false;
+    }
+    if (materialChecked > 0 && materialChecked < materialCounted) {
+        topicInput.indeterminate = true;
+    } else {
+        topicInput.indeterminate = false;
+    }
+}
+
 /**
  * Handles for user interaction: selection of topic or material
  */
@@ -135,7 +178,6 @@ checkall.onclick = function () {
   }
 }
 */
-
 
 /**
  * Load courses using gapi.

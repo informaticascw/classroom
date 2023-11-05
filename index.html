@@ -184,7 +184,7 @@
       }
 
       // ERROR: topics worden wel teruggestuurd, maar de response wordt niet afgedrukt
-      const topics = topicsResponse.result.topics;
+      const topics = topicsResponse.result.topic;
       if (!topics || topics.length == 0) {
         document.getElementById('content').innerText = 'No topics found.';
         return;

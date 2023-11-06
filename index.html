@@ -9,7 +9,7 @@
 
 <body>
 
-  <p>Classroom API Quickstart</p>
+  <h1>Snel je classrooms klaarzetten</h1>
 
   <!--Add buttons to initiate auth sequence and sign out-->
   <div>
@@ -17,16 +17,16 @@
     <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
   </div>
 
-  <!--Choose source classroom-->
-  <label for="classroom-list">Kies je bron classroom:</label>
-  <select name="classrooms" id="classroom-list" onchange="handleSelectClassroom(this)">
+  <!--Choose source classrooms-->
+  <label for="course-list">Kies je bron classroom:</label>
+  <select name="courses" id="course-list" onchange="handleSelectCourse(this)">
     <option value="0">--Kies een classroom--</option>
-    <!--- source-classroom-item-template will be cloned here -->
-    <!--- source-classroom-item-template will be cloned here -->
+    <!--- course-item-template will be cloned here -->
+    <!--- course-item-template will be cloned here -->
     <!--- etcetera -->
   </select>
-  <template id="classroom-item-template">
-    <option class="classroom-item" value="1">Naam van classroom</option>
+  <template id="course-item-template">
+    <option class="course-item" value="1">Naam van classroom</option>
   </template>
 
   <!--List of materials grouped by topic-->

@@ -105,7 +105,7 @@ function handleSignoutClick() {
  * Handles for user interaction: selection of source classroom
  */
 
-async function handleSelectClassroom(selectObject) {
+async function handleSelectCourse(selectObject) {
     var courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
     await listTopics(courseId);
@@ -170,17 +170,17 @@ async function listCourses() {
         'Courses:\n');
     document.getElementById('content').innerText += output;
 
-    // populate select-tag with classroom-names, remove old item in list
-    node = document.getElementById('classroom-list')
-    while (node.querySelector('.classroom-item')) {
-        node.removeChild(node.querySelector('.classroom-item'));
+    // populate select-tag with course-names, remove old item in list
+    node = document.getElementById('course-list')
+    while (node.querySelector('.course-item')) {
+        node.removeChild(node.querySelector('.course-item'));
     }
-    template = document.getElementById('classroom-item-template')
+    template = document.getElementById('course-item-template')
 
     for (let course of courses) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".classroom-item").value = course.id;
-        clone.querySelector(".classroom-item").textContent = `${course.name}`;
+        clone.querySelector(".course-item").value = course.id;
+        clone.querySelector(".course-item").textContent = `${course.name}`;
         node.appendChild(clone);
     }
 }

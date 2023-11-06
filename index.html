@@ -12,36 +12,51 @@
   <p>Classroom API Quickstart</p>
 
   <!--Add buttons to initiate auth sequence and sign out-->
-  <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
-  <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
+  <div>
+    <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
+    <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
+  </div>
 
   <!--Choose source classroom-->
-  <label for="source-classroom">Kies je bron classroom:</label>
-  <select name="classrooms" id="source-classroom-list" onchange="handleSelectClassroom(this)">
-    <option value="">--Kies een classroom--</option>
-    <option value="0">Dummy</option>
-    <template id="source-classroom-item-template">
-      <option class="option" value="1">Beschrijving</option>
-    </template>
+  <label for="classroom-list">Kies je bron classroom:</label>
+  <select name="classrooms" id="classroom-list" onchange="handleSelectClassroom(this)">
+    <option value="0">--Kies een classroom--</option>
+    <!--- source-classroom-item-template will be cloned here -->
+    <!--- source-classroom-item-template will be cloned here -->
+    <!--- etcetera -->
   </select>
+  <template id="classroom-item-template">
+    <option class="classroom-item" value="1">Naam van classroom</option>
+  </template>
 
   <!--List of materials grouped by topic-->
   <ul id="topic-list">
-    <template id="topic-template">
-      <li class="topic-item">
-        <input class="topic-input" type="checkbox" id="topic-xxxxxx" value="xxxxxx" onClick="handleCheckTopic(this)">
-        <label class="topic-label" for="topicxxxxxx">Topic name</label>
-        <ul class="material-list" id="topic2-xxxxxx">
-          <template id="material-template">
-            <li class="material-item">
-              <input class="material-input" type="checkbox" id="material-xxxxxx" value="xxxxxx" onClick="handleCheckMaterial(this)">
-              <label class="material-label" for="material-xxxxxx">Material name</label>
-            </li>
-          </template>
-        </ul>
-      </li>
-    </template>
+    <!---topic-template will be cloned here-->
+    <!---  material-template will be cloned in each topic-template-->
+    <!---  material-template will be cloned in each topic-template-->
+    <!---  etcetera-->
+    <!---topic-template will be cloned here-->
+    <!---  material-template will be cloned in each topic-template-->
+    <!---  material-template will be cloned in each topic-template-->
+    <!---  etcetera-->
+    <!---etcetera-->
   </ul>
+  <template id="topic-template">
+    <li class="topic-item">
+      <input class="topic-input" type="checkbox" id="topic-xxxxxx" value="xxxxxx" onchange="handleCheckTopic(this)">
+      <label class="topic-label" for="topicxxxxxx">Topic name</label>
+      <ul class="material-list" id="topic2-xxxxxx">
+        <!--material-template will be cloned here-->
+      </ul>
+    </li>
+  </template>
+  <template id="material-template">
+    <li class="material-item">
+      <input class="material-input" type="checkbox" id="material-xxxxxx" value="xxxxxx"
+        onchange="handleCheckMaterial(this)">
+      <label class="material-label" for="material-xxxxxx">Material name</label>
+    </li>
+  </template>
 
   <!--Log output-->
   <pre id="content" style="white-space: pre-wrap;"></pre>

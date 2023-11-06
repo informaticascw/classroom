@@ -125,23 +125,11 @@ async function handleCheckTopic(selectObject) {
 }
 
 async function handleCheckMaterial(selectObject) {
-    console.log(selectObject)
-    let parent1 = selectObject.parentNode;
-    let parent2 = parent1.parentNode; 
-    let parent3 = parent2.parentNode;
-    console.log(`Parent: ${selectObject.parentElement}`)
-    console.log(`Parent.Parent: ${selectObject.parentElement.ParentElement}`)
-
-    console.log(`selectObject: ${selectObject}`)
-    console.log(`Parent1: ${parent1}`)
-    console.log(`Parent2: ${parent2}`)
-    console.log(`Parent3: ${parent3}`)
-    console.log(parent3)
-    let topicItem = parent3
-    let topicInput = topicItem.querySelector(':scope > input.topic-input');
-    let materialInputs = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input');
+    let topicItem = selectObject.closest('.topic-item');
+    let topicInput = topicItem.querySelector('.topic-input');
+    let materialInputs = topicItem.querySelectorAll('.material-input');
     let materialCounted = materialInputs.length
-    let materialChecks = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input:checked');
+    let materialChecks = topicItem.querySelectorAll('.material-input:checked');
     let materialChecked = materialChecks.length
     if (materialChecked > 0) {
         topicInput.checked = true;
@@ -154,30 +142,6 @@ async function handleCheckMaterial(selectObject) {
         topicInput.indeterminate = false;
     }
 }
-
-/**
- * Handles for user interaction: selection of topic or material
- */
-
-/*
-var checkboxes = document.querySelectorAll('input.subOption'),
-  checkall = document.getElementById('option');
-
-for (var i = 0; i < checkboxes.length; i++) {
-  checkboxes[i].onclick = function () {
-    var checkedCount = document.querySelectorAll('input.subOption:checked').length;
-
-    checkall.checked = checkedCount > 0;
-    checkall.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
-  }
-}
-
-checkall.onclick = function () {
-  for (var i = 0; i < checkboxes.length; i++) {
-    checkboxes[i].checked = this.checked;
-  }
-}
-*/
 
 /**
  * Load courses using gapi.
@@ -207,15 +171,16 @@ async function listCourses() {
     document.getElementById('content').innerText += output;
 
     // populate select-tag with classroom-names, remove old item in list
-    node = document.getElementById('source-classroom-list')
-    while (node.querySelector(':scope > .option')) {
-        node.removeChild(node.querySelector(':scope > .option'));
+    node = document.getElementById('classroom-list')
+    while (node.querySelector('.classroom-item')) {
+        node.removeChild(node.querySelector('.classroom-item'));
     }
-    template = document.getElementById('source-classroom-item-template')
+    template = document.getElementById('classroom-item-template')
+
     for (let course of courses) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".option").value = course.id;
-        clone.querySelector(".option").textContent = `${course.name}`;
+        clone.querySelector(".classroom-item").value = course.id;
+        clone.querySelector(".classroom-item").textContent = `${course.name}`;
         node.appendChild(clone);
     }
 }
@@ -251,8 +216,8 @@ async function listTopics(courseId) {
 
     // populate input and labels for topics, and remove old items in list
     node = document.getElementById('topic-list');
-    while (node.querySelector(':scope > .topic-item')) {
-        node.removeChild(node.querySelector(':scope > .topic-item'));
+    while (node.querySelector('.topic-item')) {
+        node.removeChild(node.querySelector('.topic-item'));
     }
     template = document.getElementById('topic-template')
     for (let topic of topics) {
@@ -299,8 +264,8 @@ async function listMaterials(courseId) {
     // TODO: test for material which has no topic
     nodes = document.querySelectorAll('.material-list');
     for (let node of nodes) {
-        while (node.querySelector(':scope > .material-item')) {
-            node.removeChild(node.querySelector(':scope > .material-item'));
+        while (node.querySelector('.material-item')) {
+            node.removeChild(node.querySelector('.material-item'));
         }
         template = document.getElementById('material-template')
         for (let material of materials) {

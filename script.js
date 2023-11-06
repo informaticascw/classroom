@@ -144,9 +144,9 @@ async function handleCheckMaterial(selectObject) {
     let materialChecks = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input:checked');
     let materialChecked = materialChecks.length
     if (materialChecked > 0) {
-        selectObject.checked = true;
+        topicInput.checked = true;
     } else {
-        selectObject.checked = false;
+        topicInput.checked = false;
     }
     if (materialChecked > 0 && materialChecked < materialCounted) {
         topicInput.indeterminate = true;

@@ -74,6 +74,7 @@ function handleAuthClick() {
         document.getElementById('signout_button').style.visibility = 'visible';
         document.getElementById('authorize_button').innerText = 'Refresh';
         await listCourses();
+        await listDestCourses();
     };
 
     if (gapi.client.getToken() === null) {
@@ -110,6 +111,13 @@ async function handleSelectCourse(selectObject) {
     console.log(`user selected courseId ${courseId}`);
     await listTopics(courseId);
     await listMaterials(courseId);
+}
+
+async function handleSelectDestCourse(selectObject) {
+    var courseId = selectObject.value;
+    console.log(`user selected destination courseId ${courseId}`);
+    await listDestTopics(courseId);
+    await listDestMaterials(courseId);
 }
 
 async function handleCheckTopic(selectObject) {
@@ -185,6 +193,45 @@ async function listCourses() {
     }
 }
 
+async function listDestCourses() {
+    let response;
+    try {
+        response = await gapi.client.classroom.courses.list({
+            pageSize: 10,
+        });
+    } catch (err) {
+        document.getElementById('content').innerText += err.message;
+        return;
+    }
+
+    const courses = response.result.courses;
+    if (!courses || courses.length == 0) {
+        document.getElementById('content').innerText += 'No courses found.';
+        return;
+    }
+    console.log(courses)
+
+    // Flatten to string to display
+    const output = courses.reduce(
+        (str, course) => `${str}${course.name}\n`,
+        'Destination courses:\n');
+    document.getElementById('content').innerText += output;
+
+    // populate select-tag with course-names, remove old item in list
+    node = document.getElementById('dest-course-list')
+    while (node.querySelector('.course-item')) {
+        node.removeChild(node.querySelector('.course-item'));
+    }
+    template = document.getElementById('dest-course-item-template')
+
+    for (let course of courses) {
+        clone = template.content.cloneNode(true);
+        clone.querySelector(".course-item").value = course.id;
+        clone.querySelector(".course-item").textContent = `${course.name}`;
+        node.appendChild(clone);
+    }
+}
+
 /**
  * Load topics using gapi.
  */
@@ -227,6 +274,47 @@ async function listTopics(courseId) {
         clone.querySelector(".topic-input").id = `topic-${topic.topicId}`;
         clone.querySelector(".topic-label").htmlFor = `topic-${topic.topicId}`;
         clone.querySelector(".topic-label").textContent = `${topic.name}`;
+        node.appendChild(clone);
+    }
+}
+
+async function listDestTopics(courseId) {
+    /* read topics of a course */
+    let topicsResponse;
+    try {
+        topicsResponse = await gapi.client.classroom.courses.topics.list({
+            courseId: `${courseId}`, // TODO change id into the one selected
+            pageSize: 10,
+        });
+    } catch (err) {
+        document.getElementById('content').innerText += err.message;
+        return;
+    }
+
+    const topics = topicsResponse.result.topic;
+    if (!topics || topics.length == 0) {
+        document.getElementById('content').innerText += 'No topics found.';
+        return;
+    }
+    console.log(topics);
+
+    // Flatten to string to display
+    const topicsOutput = topics.reduce(
+        (str, topic) => `${str}${topic.name}\n`,
+        'Destination topics:\n');
+    document.getElementById('content').innerText += topicsOutput;
+
+    // populate input and labels for topics, and remove old items in list
+    node = document.getElementById('dest-topic-list');
+    while (node.querySelector('.dest-topic-item')) {
+        node.removeChild(node.querySelector('.dest-topic-item'));
+    }
+    template = document.getElementById('dest-topic-template')
+    for (let topic of topics) {
+        clone = template.content.cloneNode(true);
+        clone.querySelector(".dest-material-list").id = `dest-topic2-${topic.topicId}`;
+        clone.querySelector(".dest-topic-item").id = `dest-topic-${topic.topicId}`;
+        clone.querySelector(".dest-topic-item").textContent = `${topic.name}`;
         node.appendChild(clone);
     }
 }
@@ -275,6 +363,51 @@ async function listMaterials(courseId) {
                 clone.querySelector(".material-input").id = `topic-${material.id}`;
                 clone.querySelector(".material-label").htmlFor = `topic-${material.id}`;
                 clone.querySelector(".material-label").textContent = `${material.title}`;
+                node.appendChild(clone);
+            }
+        }
+    }
+}
+
+async function listDestMaterials(courseId) {
+    /* read materials of a course */
+    let materialsResponse;
+    try {
+        materialsResponse = await gapi.client.classroom.courses.courseWorkMaterials.list({
+            courseId: `${courseId}`, // TODO change id into the one selected
+            pageSize: 50,
+        });
+    } catch (err) {
+        document.getElementById('content').innerText += err.message;
+        return;
+    }
+
+    const materials = materialsResponse.result.courseWorkMaterial;
+    if (!materials || materials.length == 0) {
+        document.getElementById('content').innerText += 'No material found.';
+        return;
+    }
+    console.log(materials);
+
+    // Flatten to string to display
+    const materialsOutput = materials.reduce(
+        (str, material) => `${str}${material.title}\n`,
+        'Destination materials:\n');
+    document.getElementById('content').innerText += materialsOutput;
+
+    // populate input and labels for materials, and remove old items in list
+    // TODO: test for material which has no topic
+    nodes = document.querySelectorAll('.dest-material-list');
+    for (let node of nodes) {
+        while (node.querySelector('.dest-material-item')) {
+            node.removeChild(node.querySelector('.dest-material-item'));
+        }
+        template = document.getElementById('dest-material-template')
+        for (let material of materials) {
+            if (`dest-topic2-${material.topicId}` === node.id) {
+                clone = template.content.cloneNode(true);
+                clone.querySelector(".dest-material-item").id = `${material.id}`;
+                clone.querySelector(".dest-material-item").textContent = `${material.title}`;
                 node.appendChild(clone);
             }
         }

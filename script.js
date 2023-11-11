@@ -264,7 +264,7 @@ async function listTopics(courseId) {
     // populate input and labels for topics, and remove old items in list
     node = document.getElementById('topic-list');
     while (node.querySelector('.topic-item')) {
-        node.removeChild(node.querySelector('.topic-item'));
+        node.removeChild(node.querySelector('.topic-item')); // TODO: maybe this becomes more flexible using .firstChild
     }
     template = document.getElementById('topic-template')
     for (let topic of topics) {
@@ -307,7 +307,7 @@ async function listDestTopics(courseId) {
     // populate input and labels for topics, and remove old items in list
     node = document.getElementById('dest-topic-list');
     while (node.querySelector('.dest-topic-item')) {
-        node.removeChild(node.querySelector('.dest-topic-item'));
+        node.removeChild(node.firstChild); 
     }
     template = document.getElementById('dest-topic-template')
     for (let topic of topics) {
@@ -399,7 +399,7 @@ async function listDestMaterials(courseId) {
     // TODO: test for material which has no topic
     nodes = document.querySelectorAll('.dest-material-list');
     for (let node of nodes) {
-        while (node.querySelector('.dest-material-item')) {
+        while (node.querySelector('.dest-material-item')) { //CHECK:list ipv item?
             node.removeChild(node.querySelector('.dest-material-item'));
         }
         template = document.getElementById('dest-material-template')

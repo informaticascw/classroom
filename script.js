@@ -176,21 +176,23 @@ async function listCourses() {
     document.getElementById('content').innerText += output;
 
     // remove old items in list
-    container = document.getElementById('src-course-container');
-    let courseItems = container.querySelectorAll('course-item');
+    let container = document.getElementById('src-course-container');
+    let courseItems = container.querySelectorAll('.course-item');
     for (let courseItem of courseItems) {
         courseItem.remove();
     }
 
-    // populate course-list, remove old item in list
-    container = document.getElementById('src-course-container')
-    template = container.querySelector('course-item-template')
+    // find template
+    //let container = document.getElementById('src-course-container');
+    let courseList = container.querySelector('.course-list');
+    let template = container.querySelector('.course-item-template');
+    console.log(template);
 
     for (let course of courses) {
         clone = template.content.cloneNode(true);
         clone.querySelector(".course-id").textContent = `${course.id}`;
         clone.querySelector(".course-name").textContent = `${course.name}`;
-        node.appendChild(clone);
+        courseList.appendChild(clone);
     }
 }
 

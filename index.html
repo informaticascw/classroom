@@ -18,12 +18,15 @@
   </div>
 
   <div class="course-container">
-    
+
     <!--Choose source classrooms-->
-    <div class="source">
-      <label for="course-list">Kies je bron classroom:</label>
-      <select name="courses" id="course-list" onchange="handleSelectCourse(this)">
-        <option value="0">--Kies een classroom--</option>
+    <div id="src-course-container">
+      <label for="src-course-list-labeled">Kies je bron classroom:</label>
+      <select id="src-course-list-labeled" class="course-list" onchange="handleSelectCourse(this)">
+        <option value="0" class="course-item">
+          <spam class="course-id" hidden></spam>
+          <spam class="course-name">--Authorize om classrooms te laden--</spam>
+        </option>
         <!--- course-item-template will be cloned here -->
         <!--- course-item-template will be cloned here -->
         <!--- etcetera -->
@@ -33,7 +36,62 @@
       </template>
 
       <!--List of materials grouped by topic-->
-      <ul id="topic-list">
+      <!--Javascript code works with this parent-child structure-->
+      <!--class="topic-list"-->
+      <!--  class="topic-item"-->
+      <!--  class="material-list"-->
+      <!--    class="material-item"--> 
+      <!--    class="material-item"--> 
+      <!--  class="topic-item"-->
+      <!--  class="material-list"-->
+      <!--    class="material-item"--> 
+      <!--    class="material-item"--> 
+           
+      <div id="src-material-list">
+        <ul class="topic-list">
+          <template id="topic-item-template">
+            <li class="topic-item">
+              <label>
+                <input class="topic-input" type="checkbox" onchange="handleCheckTopic(this)">
+                <span class="topic-id" hidden>xxxxxx</span>
+                <span class="topic-name">Topic name</span>
+              </label>
+              <ul class="material-list">
+                <template class="material-item-template">
+                  <li class="material-item">
+                    <label>
+                      <input class="material-input" type="checkbox" onchange="handleCheckMaterial(this)">
+                      <span class="material-id" hidden>xxxxxx</span>
+                      <span class="material-name">Material name</span>
+                    </label>
+                  </li>
+                  <!--more material-items may be cloned here-->
+                </template>
+              </ul>
+            </li>
+            <!--more topic-items may be cloned here-->
+          </template>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <!--Choose destination classrooms-->
+    <div class="dest">
+      <label for="dest-course-list">Kies je bestemming classroom:</label>
+      <select name="courses" id="dest-course-list" onchange="handleSelectDestCourse(this)">
+        <option value="0">--Kies een classroom--</option>
+        <!--- course-item-template will be cloned here -->
+        <!--- course-item-template will be cloned here -->
+        <!--- etcetera -->
+      </select>
+      <template id="dest-course-item-template">
+        <option class="course-item" value="1">Naam van classroom</option>
+      </template>
+
+      <!--List of destination materials grouped by topic-->
+      <ul id="dest-topic-list">
         <!---topic-template will be cloned here-->
         <!---  material-template will be cloned in each topic-template-->
         <!---  material-template will be cloned in each topic-template-->
@@ -44,64 +102,21 @@
         <!---  etcetera-->
         <!---etcetera-->
       </ul>
-      <template id="topic-template">
-        <li class="topic-item">
-          <input class="topic-input" type="checkbox" id="topic-xxxxxx" value="xxxxxx" onchange="handleCheckTopic(this)">
-          <label class="topic-label" for="topicxxxxxx">Topic name</label>
-          <ul class="material-list" id="topic2-xxxxxx">
+      <template id="dest-topic-template">
+        <li><span class="dest-topic-item" id="dest-topic-xxxxxx">Topic name</span>
+          <ul class="dest-material-list" id="dest-topic2-xxxxxx">
             <!--material-template will be cloned here-->
           </ul>
         </li>
       </template>
-      <template id="material-template">
-        <li class="material-item">
-          <input class="material-input" type="checkbox" id="material-xxxxxx" value="xxxxxx"
-            onchange="handleCheckMaterial(this)">
-          <label class="material-label" for="material-xxxxxx">Material name</label>
+      <template id="dest-material-template">
+        <li class="dest-material-item" id="">
+          Material name
         </li>
       </template>
     </div>
 
-  <!--Choose destination classrooms-->
-  <div class="dest">
-    <label for="dest-course-list">Kies je bestemming classroom:</label>
-    <select name="courses" id="dest-course-list" onchange="handleSelectDestCourse(this)">
-      <option value="0">--Kies een classroom--</option>
-      <!--- course-item-template will be cloned here -->
-      <!--- course-item-template will be cloned here -->
-      <!--- etcetera -->
-    </select>
-    <template id="dest-course-item-template">
-      <option class="course-item" value="1">Naam van classroom</option>
-    </template>
-
-    <!--List of destination materials grouped by topic-->
-    <ul id="dest-topic-list">
-      <!---topic-template will be cloned here-->
-      <!---  material-template will be cloned in each topic-template-->
-      <!---  material-template will be cloned in each topic-template-->
-      <!---  etcetera-->
-      <!---topic-template will be cloned here-->
-      <!---  material-template will be cloned in each topic-template-->
-      <!---  material-template will be cloned in each topic-template-->
-      <!---  etcetera-->
-      <!---etcetera-->
-    </ul>
-    <template id="dest-topic-template">
-      <li><span class="dest-topic-item" id="dest-topic-xxxxxx">Topic name</span>
-        <ul class="dest-material-list" id="dest-topic2-xxxxxx">
-          <!--material-template will be cloned here-->
-        </ul>
-      </li>
-    </template>
-    <template id="dest-material-template">
-      <li class="dest-material-item" id="">
-        Material name
-      </li>
-    </template>
   </div>
-
-</div>
 
   <!--Log output-->
   <div class="log">

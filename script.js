@@ -121,12 +121,8 @@ async function handleSelectDestCourse(selectObject) {
 }
 
 async function handleCheckTopic(selectObject) {
-    console.log(selectObject)
-    let topicItem = selectObject.parentNode
-    console.log(topicItem)
-    let topicParent = topicItem.parentNode
-    console.log(topicParent)
-    let materialInputs = topicItem.querySelectorAll(':scope > ul.material-list > li.material-item >input.material-input');
+    let materialList = selectObject.closest('.material-list');
+    let materialInputs = materialList.querySelectorAll('.material-input');
     for (let materialInput of materialInputs) {
         materialInput.checked = selectObject.checked
     }

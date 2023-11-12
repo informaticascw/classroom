@@ -108,11 +108,10 @@ function handleSignoutClick() {
  */
 
 async function handleSelectCourse(selectObject) {
-    let courseItem = selectObject.closest('.course-item');
-    let courseId = courseItem.querySelector('.course-id');
+    let courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
     let topicListElement = selectObject.closest('.topic-list')
-    await listTopicsAndMaterials(topicListElement, courseId);
+    await listMaterialsPerTopic(topicListElement, courseId);
 }
 
 async function handleCheckTopic(selectObject) {
@@ -174,12 +173,14 @@ async function listCourses(courseListElement) {
     let template = courseListElement.querySelector('.course-item-template');
 
     let clone = template.content.cloneNode(true);
+    clone.querySelector("option").value = `kies`;
     clone.querySelector(".course-id").textContent = `classroom-id`;
     clone.querySelector(".course-name").textContent = `Kies je classroom`;
     courseListElement.appendChild(clone);
 
     for (let course of courses) {
         clone = template.content.cloneNode(true);
+        clone.querySelector("option").value = `${course.id}`;
         clone.querySelector(".course-id").textContent = `${course.id}`;
         clone.querySelector(".course-name").textContent = `${course.name}`;
         courseListElement.appendChild(clone);
@@ -187,9 +188,9 @@ async function listCourses(courseListElement) {
 }
 
 /**
- * Load topics and materials using gapi.
+ * Load materials and topics using gapi.
  */
-async function listTopicsAndMatrials(topicListElement, courseId) {
+async function listMaterialsPerTopic(topicListElement, courseId) {
     // retrieve topics from gapi
     let topicsResponse;
     try {
@@ -243,24 +244,7 @@ async function listTopicsAndMatrials(topicListElement, courseId) {
         return;
     }
     console.log(materials);
-    //start
-    // remove old topics from DOM
-    let topicItems = topicListElement.querySelectorAll('.topic-item');
-    for (let topicItem of topicItems) {
-        topicItem.remove();
-    }
-
-    // add new topics to DOM
-    let template = topicListElement.querySelector('.topic-item-template');
-
-    for (let topic of topics) {
-        clone = template.content.cloneNode(true);
-        clone.querySelector(".topic-id").textContent = `${topic.topicId}`;
-        clone.querySelector(".topic-name").textContent = `${topic.name}`;
-        topicListElement.appendChild(clone);
-    }
-    //end
-
+  
     // add materials for each topic
     // TODO: test for material which has no topic
     let materialLists = topicListElement.querySelectorAll('.material-list');
@@ -271,7 +255,6 @@ async function listTopicsAndMatrials(topicListElement, courseId) {
         for (let materialItem of materialItems) {
             materialItem.remove();
         }
-
 
         let template = materialList.querySelector('.material-item-template');
         for (let material of materials) {

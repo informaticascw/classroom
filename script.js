@@ -272,16 +272,15 @@ async function listTopicsAndMatrials(topicListElement, courseId) {
             materialItem.remove();
         }
 
-        template = document.getElementById('material-template')
+
+        let template = materialList.querySelector('.material-item-template');
         for (let material of materials) {
-            if (`topic2-${material.topicId}` === node.id) {
+            //if (`topic2-${material.topicId}` === node.id) {
                 clone = template.content.cloneNode(true);
-                clone.querySelector(".material-input").value = material.id;
-                clone.querySelector(".material-input").id = `topic-${material.id}`;
-                clone.querySelector(".material-label").htmlFor = `topic-${material.id}`;
-                clone.querySelector(".material-label").textContent = `${material.title}`;
+                clone.querySelector(".material-id").htmlFor = `${material.id}`;
+                clone.querySelector(".material-name").textContent = `${material.title}`;
                 node.appendChild(clone);
-            }
+            //}
         }
     }
 }

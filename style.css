@@ -32,6 +32,13 @@ ul.material-list {
   background-color: lightgrey;
 }
 
+.add {
+  color: green;
+}
+.update {
+  color: yellow;
+}
+
 .log {
   width:c alc(100% -20px);
   border: 1px solid black;

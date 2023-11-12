@@ -11,27 +11,31 @@ ul.material-list {
   width: 100%;
 }
 
-.course-container {
-  display:flex;
-  justify-content:left;
+.src-and-dst {
+  width: 100%;
+  overflow: hidden; /* includes floats in height */
 }
 
-.source {
+#src-container {
+  float: left;
+  width: calc(50% - 30px);
   margin-right: 10px;
   padding: 10px;
   background-color: lightgrey;
 }
 
-.dest {
+#dst-container {
+  float:right;
+  width: calc(50% - 30px);
   margin-left:10px;
   padding: 10px;
   background-color: lightgrey;
 }
 
 .log {
+  width:c alc(100% -20px);
   border: 1px solid black;
   padding: 10px;
   overflow-y: auto;
-  width: 100%;
   height: 200px;
 }

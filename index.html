@@ -17,30 +17,33 @@
     <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
   </div>
 
-  <div class="course-container">
+  <div class="src-and-dst">
 
-    <!--Pulldown of source classrooms-->
-    <!--Javascript code works with this parent-child structure-->
-    <!--class="course-list"-->
-    <!--  class="course-item"-->
-    <!--  class="course-item"-->
-    <div id="src-course-container">
-      <label>Bron:
-        <select class="course-list" onchange="handleSelectCourse(this)">
-          <option class="course-item" value="kies">
-            <span class="course-name">Authorize om classrooms te laden</span>
-            <span class="course-id" hidden></span>
-          </option>
-          <template class="course-item-template">
-            <option class="course-item" value="xxxxxx">
-              <span class="course-name">Naam van classroom</span>
-              (<span class="course-id" hidden>xxxxxx</span>)
-              <!--TODO: fix that hidden isn't working inside option-tag-->
+    <div id="src-container">
+
+      <!--Pulldown of source classrooms-->
+      <!--Javascript code works with this parent-child structure-->
+      <!--class="course-list"-->
+      <!--  class="course-item"-->
+      <!--  class="course-item"-->
+      <div id="src-course-container">
+        <label>Bron:
+          <select class="course-list" onchange="handleSelectCourse(this)">
+            <option class="course-item" value="kies">
+              <span class="course-name">Authorize om classrooms te laden</span>
+              <span class="course-id" hidden></span>
             </option>
-          </template>
-          <!--- more course-items will be cloned here -->
-        </select>
-      </label>
+            <template class="course-item-template">
+              <option class="course-item" value="xxxxxx">
+                <span class="course-name">Naam van classroom</span>
+                (<span class="course-id" hidden>xxxxxx</span>)
+                <!--TODO: fix that hidden isn't working inside option-tag-->
+              </option>
+            </template>
+            <!--- more course-items will be cloned here -->
+          </select>
+        </label>
+      </div>
 
       <!--List of materials grouped by topic-->
       <!--Javascript code works with this parent-child structure-->
@@ -55,7 +58,7 @@
       <!--    class="material-item"-->
       <div id="src-material-container">
         <ul class="topic-list">
-          <template id="topic-item-template">
+          <template class="topic-item-template">
             <li class="topic-item">
               <label>
                 <input class="topic-input" type="checkbox" onchange="handleCheckTopic(this)">
@@ -78,58 +81,63 @@
             <!--more topic-items may be cloned here-->
           </template>
         </ul>
-
       </div>
 
     </div>
 
-    <!--Pulldown of destination classrooms-->
-    <!--Javascript code works with this parent-child structure-->
-    <!--class="course-list"-->
-    <!--  class="course-item"-->
-    <!--  class="course-item"-->
-    <div id="dst-course-container">
-      <label>Bestemming:
-        <select class="course-list" onchange="handleSelectCourse(this)">
-          <option class="course-item">
-            <span class="course-name">Authorize om classrooms te laden</span>
-            <span class="course-id" hidden></span>
-          </option>
-          <template class="course-item-template">
+    <div id="dst-container">
+
+      <!--Pulldown of destination classrooms-->
+      <!--Javascript code works with this parent-child structure-->
+      <!--class="course-list"-->
+      <!--  class="course-item"-->
+      <!--  class="course-item"-->
+      <div id="dst-course-container">
+        <label>Bestemming:
+          <select class="course-list" onchange="handleSelectCourse(this)">
             <option class="course-item">
-              <span class="course-name">Naam van classroom</span>
-              (<span class="course-id" hidden>xxxxxx</span>)
-              <!--TODO: fix that hidden isn't working inside option-tag-->
+              <span class="course-name">Authorize om classrooms te laden</span>
+              <span class="course-id" hidden></span>
             </option>
-          </template>
-          <!--- more course-items will be cloned here -->
-        </select>
-      </label>
+            <template class="course-item-template">
+              <option class="course-item">
+                <span class="course-name">Naam van classroom</span>
+                (<span class="course-id" hidden>xxxxxx</span>)
+                <!--TODO: fix that hidden isn't working inside option-tag-->
+              </option>
+            </template>
+            <!--- more course-items will be cloned here -->
+          </select>
+        </label>
+      </div>
 
       <!--List of destination materials grouped by topic-->
-      <ul id="dest-topic-list">
-        <!---topic-template will be cloned here-->
-        <!---  material-template will be cloned in each topic-template-->
-        <!---  material-template will be cloned in each topic-template-->
-        <!---  etcetera-->
-        <!---topic-template will be cloned here-->
-        <!---  material-template will be cloned in each topic-template-->
-        <!---  material-template will be cloned in each topic-template-->
-        <!---  etcetera-->
-        <!---etcetera-->
-      </ul>
-      <template id="dest-topic-template">
-        <li><span class="dest-topic-item" id="dest-topic-xxxxxx">Topic name</span>
-          <ul class="dest-material-list" id="dest-topic2-xxxxxx">
-            <!--material-template will be cloned here-->
-          </ul>
-        </li>
-      </template>
-      <template id="dest-material-template">
-        <li class="dest-material-item" id="">
-          Material name
-        </li>
-      </template>
+      <div id="dst-material-container">
+        <ul id="dest-topic-list">
+          <!---topic-template will be cloned here-->
+          <!---  material-template will be cloned in each topic-template-->
+          <!---  material-template will be cloned in each topic-template-->
+          <!---  etcetera-->
+          <!---topic-template will be cloned here-->
+          <!---  material-template will be cloned in each topic-template-->
+          <!---  material-template will be cloned in each topic-template-->
+          <!---  etcetera-->
+          <!---etcetera-->
+        </ul>
+        <template id="dest-topic-template">
+          <li><span class="dest-topic-item" id="dest-topic-xxxxxx">Topic name</span>
+            <ul class="dest-material-list" id="dest-topic2-xxxxxx">
+              <!--material-template will be cloned here-->
+            </ul>
+          </li>
+        </template>
+        <template id="dest-material-template">
+          <li class="dest-material-item" id="">
+            Material name
+          </li>
+        </template>
+      </div>
+
     </div>
 
   </div>

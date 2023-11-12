@@ -110,12 +110,14 @@ function handleSignoutClick() {
 async function handleSelectCourse(selectObject) {
     let courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
-    let topicListElement = selectObject.closest('.topic-list')
+    console.log(selectObject);
+    let topicListClosest = selectObject.closest('#src-container, #dst-container') // TODO: make this more robust for changes in index.html
+    let topicListElement = topicListClosest.querySelector('.topic-list') 
     await listMaterialsPerTopic(topicListElement, courseId);
 }
 
 async function handleCheckTopic(selectObject) {
-    let materialList = selectObject.closest('.material-list');
+    let materialList = selectObject.closest('.topic-item');
     let materialInputs = materialList.querySelectorAll('.material-input');
     for (let materialInput of materialInputs) {
         materialInput.checked = selectObject.checked
@@ -211,6 +213,7 @@ async function listMaterialsPerTopic(topicListElement, courseId) {
     console.log(topics);
 
     // remove old topics from DOM
+    console.log(topicListElement);
     let topicItems = topicListElement.querySelectorAll('.topic-item');
     for (let topicItem of topicItems) {
         topicItem.remove();
@@ -257,13 +260,14 @@ async function listMaterialsPerTopic(topicListElement, courseId) {
         }
 
         let template = materialList.querySelector('.material-item-template');
+        let topicId = materialList.closest('.topic-item').querySelector('.topic-id').textContent;
         for (let material of materials) {
-            //if (`topic2-${material.topicId}` === node.id) {
+            if (topicId === material.topicId) {
                 clone = template.content.cloneNode(true);
                 clone.querySelector(".material-id").htmlFor = `${material.id}`;
                 clone.querySelector(".material-name").textContent = `${material.title}`;
-                node.appendChild(clone);
-            //}
+                materialList.appendChild(clone);
+            }
         }
     }
 }

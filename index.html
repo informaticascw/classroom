@@ -25,7 +25,7 @@
     <!--  class="course-item"-->
     <!--  class="course-item"-->
     <div id="src-course-container">
-      <label>Kies je bron classroom:
+      <label>Bron:
         <select class="course-list" onchange="handleSelectCourse(this)">
           <option class="course-item">
             <span class="course-name">Authorize om classrooms te laden</span>
@@ -34,7 +34,8 @@
           <template class="course-item-template">
             <option class="course-item">
               <span class="course-name">Naam van classroom</span>
-              (<span class="course-id" hidden>xxxxxx</span>) <!--TODO: fix that hidden isn't working inside option-tag-->
+              (<span class="course-id" hidden>xxxxxx</span>)
+              <!--TODO: fix that hidden isn't working inside option-tag-->
             </option>
           </template>
           <!--- more course-items will be cloned here -->
@@ -52,15 +53,14 @@
       <!--  class="material-list"-->
       <!--    class="material-item"-->
       <!--    class="material-item"-->
-
       <div id="src-material-container">
         <ul class="topic-list">
           <template id="topic-item-template">
             <li class="topic-item">
               <label>
                 <input class="topic-input" type="checkbox" onchange="handleCheckTopic(this)">
-                <span class="topic-id" hidden>xxxxxx</span>
                 <span class="topic-name">Topic name</span>
+                (<span class="topic-id" hidden>xxxxxx</span>)
               </label>
               <ul class="material-list">
                 <template class="material-item-template">
@@ -83,13 +83,13 @@
 
     </div>
 
-    <!--Pulldown of source classrooms-->
+    <!--Pulldown of destination classrooms-->
     <!--Javascript code works with this parent-child structure-->
     <!--class="course-list"-->
     <!--  class="course-item"-->
     <!--  class="course-item"-->
     <div id="dst-course-container">
-      <label>Kies je bron classroom:
+      <label>Bestemming:
         <select class="course-list" onchange="handleSelectCourse(this)">
           <option class="course-item">
             <span class="course-name">Authorize om classrooms te laden</span>
@@ -98,7 +98,8 @@
           <template class="course-item-template">
             <option class="course-item">
               <span class="course-name">Naam van classroom</span>
-              (<span class="course-id" hidden>xxxxxx</span>) <!--TODO: fix that hidden isn't working inside option-tag-->
+              (<span class="course-id" hidden>xxxxxx</span>)
+              <!--TODO: fix that hidden isn't working inside option-tag-->
             </option>
           </template>
           <!--- more course-items will be cloned here -->

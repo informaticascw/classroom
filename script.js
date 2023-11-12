@@ -107,7 +107,8 @@ function handleSignoutClick() {
  */
 
 async function handleSelectCourse(selectObject) {
-    var courseId = selectObject.value;
+    let courseItem = selectObject.closest('.course-item');
+    let courseId = courseItem.querySelector('.course-id');
     console.log(`user selected courseId ${courseId}`);
     await listTopics(courseId);
     await listMaterials(courseId);
@@ -174,17 +175,21 @@ async function listCourses() {
         'Courses:\n');
     document.getElementById('content').innerText += output;
 
-    // populate select-tag with course-names, remove old item in list
-    node = document.getElementById('course-list')
-    while (node.querySelector('.course-item')) {
-        node.removeChild(node.querySelector('.course-item'));
+    // remove old items in list
+    container = document.getElementById('src-course-container');
+    let courseItems = container.querySelectorAll('course-item');
+    for (let courseItem of courseItems) {
+        courseItem.remove();
     }
-    template = document.getElementById('course-item-template')
+
+    // populate course-list, remove old item in list
+    container = document.getElementById('src-course-container')
+    template = container.querySelector('course-item-template')
 
     for (let course of courses) {
         clone = template.content.cloneNode(true);
-        clone.querySelector(".course-item").value = course.id;
-        clone.querySelector(".course-item").textContent = `${course.name}`;
+        clone.querySelector(".course-id").textContent = `${course.id}`;
+        clone.querySelector(".course-name").textContent = `${course.name}`;
         node.appendChild(clone);
     }
 }

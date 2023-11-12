@@ -19,35 +19,41 @@
 
   <div class="course-container">
 
-    <!--Choose source classrooms-->
+    <!--Pulldown of source classrooms-->
+    <!--Javascript code works with this parent-child structure-->
+    <!--class="course-list"-->
+    <!--  class="course-item"-->
+    <!--  class="course-item"-->
     <div id="src-course-container">
-      <label for="src-course-list-labeled">Kies je bron classroom:</label>
-      <select id="src-course-list-labeled" class="course-list" onchange="handleSelectCourse(this)">
-        <option value="0" class="course-item">
-          <spam class="course-id" hidden></spam>
-          <spam class="course-name">--Authorize om classrooms te laden--</spam>
-        </option>
-        <!--- course-item-template will be cloned here -->
-        <!--- course-item-template will be cloned here -->
-        <!--- etcetera -->
-      </select>
-      <template id="course-item-template">
-        <option class="course-item" value="1">Naam van classroom</option>
-      </template>
+      <label>Kies je bron classroom:
+        <select class="course-list" onchange="handleSelectCourse(this)">
+          <option class="course-item">
+            <spam class="course-id" hidden>xxxxxx</spam>
+            <spam class="course-name">--Authorize om classrooms te laden--</spam>
+          </option>
+          <template id="course-item-template">
+            <option class="course-item">
+              <spam class="course-id" hidden>xxxxxx</spam>
+              <spam class="course-name">Naam van classroom</spam>
+            </option>
+          </template>
+          <!--- more course-items will be cloned here -->
+        </select>
+      </label>
 
       <!--List of materials grouped by topic-->
       <!--Javascript code works with this parent-child structure-->
       <!--class="topic-list"-->
       <!--  class="topic-item"-->
       <!--  class="material-list"-->
-      <!--    class="material-item"--> 
-      <!--    class="material-item"--> 
+      <!--    class="material-item"-->
+      <!--    class="material-item"-->
       <!--  class="topic-item"-->
       <!--  class="material-list"-->
-      <!--    class="material-item"--> 
-      <!--    class="material-item"--> 
-           
-      <div id="src-material-list">
+      <!--    class="material-item"-->
+      <!--    class="material-item"-->
+
+      <div id="src-material-container">
         <ul class="topic-list">
           <template id="topic-item-template">
             <li class="topic-item">

@@ -152,6 +152,7 @@ async function handleCheckMaterial(selectObject) {
  * Load courses using gapi.
  */
 async function listCourses() {
+    // retrieve courses from gapi
     let response;
     try {
         response = await gapi.client.classroom.courses.list({
@@ -169,25 +170,17 @@ async function listCourses() {
     }
     console.log(courses)
 
-    // Flatten to string to display
-    const output = courses.reduce(
-        (str, course) => `${str}${course.name}\n`,
-        'Courses:\n');
-    document.getElementById('content').innerText += output;
+    // find courseList in DOM
+    let courseList = document.querySelector('#src-course-container .course-list');
 
-    // remove old items in list
-    let container = document.getElementById('src-course-container');
-    let courseItems = container.querySelectorAll('.course-item');
+    // remove old items from DOM
+    let courseItems = courseList.querySelectorAll('.course-item');
     for (let courseItem of courseItems) {
         courseItem.remove();
     }
 
-    // find template
-    //let container = document.getElementById('src-course-container');
-    let courseList = container.querySelector('.course-list');
-    let template = container.querySelector('.course-item-template');
-    console.log(template);
-
+    // add new items to DOM
+    let template = courseList.querySelector('.course-item-template');
     for (let course of courses) {
         clone = template.content.cloneNode(true);
         clone.querySelector(".course-id").textContent = `${course.id}`;

@@ -74,7 +74,8 @@ function handleAuthClick() {
         document.getElementById('signout_button').style.visibility = 'visible';
         document.getElementById('authorize_button').innerText = 'Refresh';
 
-        await listCourses(document.querySelector('#src-course-container .course-list'));
+        srcCourseList.load();
+        // await listCourses(document.querySelector('#src-course-container .course-list'));
         await listCourses(document.querySelector('#dst-course-container .course-list'));
     };
 
@@ -101,6 +102,168 @@ function handleSignoutClick() {
         document.getElementById('signout_button').style.visibility = 'hidden';
     }
 }
+
+/**
+ *  Documentation: object oriented programming in JavaScript
+ *  https://www.geeksforgeeks.org/introduction-object-oriented-programming-javascript/
+ */
+
+
+class CourseList {
+    constructor(selector) {
+        this.css = selector; // css selector
+        this.courses = [];
+    }
+    // method to load materials in course
+    load() {
+        // retrieve courses from gapi
+        let courses;
+        try {
+            courses = gapi.client.classroom.courses.list({
+                pageSize: 10,
+            });
+        } catch (err) {
+            console.log(err.message);
+            return;
+        }
+        this.courses = courses;
+        return this.courses;
+    }
+    show() {
+        let element = document.querySelector(this.selector);
+        node.
+    }
+}
+
+// Inheritance example
+class MaterialList {
+    constructor(selector) {
+        this.css = selector; // css selector
+        this.materials = [];
+    }
+    // method to load materials in course
+    load(courseId) {
+        // retrieve materiallist from gapi
+        let materials;
+        try {
+            materials = gapi.client.classroom.courses.courseWorkMaterials.list({
+                courseId: `${courseId}`,
+                pageSize: 50,
+            });
+        } catch (err) {
+            console.log(err.message);
+            return;
+        }
+
+        // retrieve topics from gapi
+        let topics;
+        try {
+            topics = gapi.client.classroom.courses.topics.list({
+                courseId: `${courseId}`,
+                pageSize: 10,
+            });
+        } catch (err) {
+            console.log(err.message);
+            return;
+        }
+        for (let material of materials) {
+            material.assign(topics.find(topic => topic.id === material.topicId))
+        }
+
+        this.materials = materials;
+        return this.materials;
+    }
+}
+
+class SrcMaterialList extends MaterialList {
+    constructor(selector) {
+        // super keyword for calling the above 
+        // class constructor
+        super(selector);
+        for (let material of this.materials) {
+            material.assign({ checkbox: false })
+        }
+    }
+    select(materialIds) {
+
+    }
+    show() {
+
+    }
+}
+
+
+let srcCourseList = new CourseList('#src-course-container');
+
+/*
+let srcMaterialList = new SrcMaterialList('Mukul', 22);
+
+CourseList
+
+MaterialList {
+    load(courseId)
+}
+
+SrcMaterialList {
+    materialList
+    selectievlakjes
+        .select(materialIds)
+        .show
+}
+
+DstMaterialList {
+    materialList
+    add / update / remove / keep
+        .merge(srcMaterialList)
+        .show
+}
+
+
+srcCourseList
+dstCourseLists
+srcMaterialList
+dstMaterialLists
+
+function loadCourseList(courseId) {
+
+}
+
+function loadMaterialList(courseId) {
+
+}
+
+async function handleSelectCourse(selectObject) {
+
+}
+
+async function handleCheckTopic(selectObject) {
+
+}
+
+async function handleCheckMaterial(selectObject) {
+
+}
+
+function buildSrcMaterialList(???) {
+
+}
+
+function buildDstMaterialList(srcMaterialList, ???) {
+
+}
+
+function showSrcMaterialList(???) {
+
+}
+
+function showDstMaterialList(???) {
+
+}
+*/
+
+/**
+ * OLD CODE FROM MAIN BRANCHE
+ */
 
 
 /**

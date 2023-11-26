@@ -77,11 +77,8 @@ function handleAuthClick() {
         let promise1 = courseLists["src-course-container"].load();
         let promise2 = courseLists["dst-course-container"].load();
         await Promise.all([promise1, promise2])
-
         courseLists["src-course-container"].show();
         courseLists["dst-course-container"].show();
-        // await listCourses(document.querySelector('#src-course-container .course-list'));
-        await listCourses(document.querySelector('#dst-course-container .course-list'));
     };
 
     if (gapi.client.getToken() === null) {
@@ -256,22 +253,53 @@ class MaterialList {
         // add new topics to dom
         let templateTopicItem = topicListElement.querySelector('.topic-item-template');
         for (let topic of uniqueTopics) {
+            // clone topic
             let cloneTopicItem = templateTopicItem.content.cloneNode(true);
             cloneTopicItem.querySelector(".topic-id").textContent = `${topic.topicId}`;
             cloneTopicItem.querySelector(".topic-name").textContent = `${topic.name}`;
             console.log(topicListElement)
-
-            // add materials to topic
+            // add materials to cloned topic
             let materialListElement = cloneTopicItem.querySelector('.material-list');
             let templateMaterialItem = materialListElement.querySelector('.material-item-template');
-            //let templateMaterialItem = materialListElement.querySelector('.material-item-template');
             for (let material of this.materials.filter(material => material.topicId === topic.topicId)) {
                 let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
                 cloneMaterialItem.querySelector(".material-id").htmlFor = `${material.id}`;
                 cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
                 materialListElement.appendChild(cloneMaterialItem);
             }
+            // add cloned topic to dom
             topicListElement.appendChild(cloneTopicItem);
+        }
+    }
+    select(id, check) {
+        for (let material of this.materials) {
+            if (material.id === id) {
+                material.check = check;
+            }
+        }
+    }
+    selected() {
+        return this.materials.filter(material => material.check === "checked")
+    }
+    add(srcMaterials) {
+        // remove materials with status "added" 
+        this.materials = this.materials.filter(material => material.status === "add");
+        // remove status "update"
+        for (let material of this.materials) {
+            if (material.status === "update") {
+                delete (material.status);
+            }
+        }
+
+        // add materials and assign status "update"
+        for (let srcMaterial of srcMaterials) {
+            if (this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name)) {
+                // TODO: doesn't work if same material name is in multiple topics
+                this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name).status = "update";
+            } else {
+                srcMaterial.status = "add";
+                this.materials.push(srcMaterial);
+            }
         }
     }
 }
@@ -306,76 +334,6 @@ let materialLists = {
     "dst-material-container": new MaterialList('#dst-material-container')
 }
 
-/*
-let srcMaterialList = new SrcMaterialList('Mukul', 22);
-
-CourseList
-
-MaterialList {
-    load(courseId)
-}
-
-SrcMaterialList {
-    materialList
-    selectievlakjes
-        .select(materialIds)
-        .show
-}
-
-DstMaterialList {
-    materialList
-    add / update / remove / keep
-        .merge(srcMaterialList)
-        .show
-}
-
-
-srcCourseList
-dstCourseLists
-srcMaterialList
-dstMaterialLists
-
-function loadCourseList(courseId) {
-
-}
-
-function loadMaterialList(courseId) {
-
-}
-
-async function handleSelectCourse(selectObject) {
-
-}
-
-async function handleCheckTopic(selectObject) {
-
-}
-
-async function handleCheckMaterial(selectObject) {
-
-}
-
-function buildSrcMaterialList(???) {
-
-}
-
-function buildDstMaterialList(srcMaterialList, ???) {
-
-}
-
-function showSrcMaterialList(???) {
-
-}
-
-function showDstMaterialList(???) {
-
-}
-*/
-
-/**
- * OLD CODE FROM MAIN BRANCHE
- */
-
 
 /**
  * Handles for user interaction: selection of source classroom
@@ -391,15 +349,26 @@ async function handleSelectCourse(selectObject, container) {
 }
 
 async function handleCheckTopic(selectObject) {
+    // adjust checkboxes in DOM
     let materialList = selectObject.closest('.topic-item');
     let materialInputs = materialList.querySelectorAll('.material-input');
     for (let materialInput of materialInputs) {
         materialInput.checked = selectObject.checked
     }
 
-    mergeMaterials();
+    // update checkboxes in object materialLists["src-material-container"]
+    let topicList = selectObject.closest('.topic-list');
+    let materialItems = topicList.querySelectorAll('.material-item');
+    for (let materialItem of materialItems) {
+        let checked = materialItem.querySelector('.material-input').checked;
+        let id = materialItem.querySelector('.material-id').textContent;
+        materialLists["src-material-container"].select(id, checked);
+    }
+
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected())
 }
 
+// TODO: this is still onload, doesnt work anymore
 async function handleCheckMaterial(selectObject) {
     let topicItem = selectObject.closest('.topic-item');
     let topicInput = topicItem.querySelector('.topic-input');
@@ -421,140 +390,14 @@ async function handleCheckMaterial(selectObject) {
     mergeMaterials();
 }
 
-/**
- * Load courses using gapi.
- */
-async function listCourses(courseListElement) {
-    // retrieve courses from gapi
-    let response;
-    try {
-        response = await gapi.client.classroom.courses.list({
-            pageSize: 10,
-        });
-    } catch (err) {
-        document.getElementById('content').innerText += err.message;
-        return;
-    }
 
-    const courses = response.result.courses;
-    if (!courses || courses.length == 0) {
-        document.getElementById('content').innerText += 'No courses found.';
-        return;
-    }
-    console.log(courses)
-
-    // remove old items from DOM
-    let courseItems = courseListElement.querySelectorAll('.course-item');
-    for (let courseItem of courseItems) {
-        courseItem.remove();
-    }
-
-    // add new items to DOM
-    let template = courseListElement.querySelector('.course-item-template');
-
-    let clone = template.content.cloneNode(true);
-    clone.querySelector("option").value = `kies`;
-    clone.querySelector(".course-id").textContent = `classroom-id`;
-    clone.querySelector(".course-name").textContent = `Kies je classroom`;
-    courseListElement.appendChild(clone);
-
-    for (let course of courses) {
-        clone = template.content.cloneNode(true);
-        clone.querySelector("option").value = `${course.id}`;
-        clone.querySelector(".course-id").textContent = `${course.id}`;
-        clone.querySelector(".course-name").textContent = `${course.name}`;
-        courseListElement.appendChild(clone);
-    }
-}
-
-/**
- * Load materials and topics using gapi.
- */
-async function listMaterialsPerTopic(topicListElement, courseId) {
-    // retrieve topics from gapi
-    let topicsResponse;
-    try {
-        topicsResponse = await gapi.client.classroom.courses.topics.list({
-            courseId: `${courseId}`,
-            pageSize: 10,
-        });
-    } catch (err) {
-        document.getElementById('content').innerText += err.message;
-        return;
-    }
-
-    const topics = topicsResponse.result.topic;
-    if (!topics || topics.length == 0) {
-        document.getElementById('content').innerText += 'No topics found.';
-        return;
-    }
-    console.log(topics);
-
-    // remove old topics from DOM
-    console.log(topicListElement);
-    let topicItems = topicListElement.querySelectorAll('.topic-item');
-    for (let topicItem of topicItems) {
-        topicItem.remove();
-    }
-
-    // add new topics to DOM
-    let template = topicListElement.querySelector('.topic-item-template');
-
-    for (let topic of topics) {
-        clone = template.content.cloneNode(true);
-        clone.querySelector(".topic-id").textContent = `${topic.topicId}`;
-        clone.querySelector(".topic-name").textContent = `${topic.name}`;
-        topicListElement.appendChild(clone);
-    }
-
-    // retrieve materials from gapi
-    let materialsResponse;
-    try {
-        materialsResponse = await gapi.client.classroom.courses.courseWorkMaterials.list({
-            courseId: `${courseId}`,
-            pageSize: 50,
-        });
-    } catch (err) {
-        document.getElementById('content').innerText += err.message;
-        return;
-    }
-
-    const materials = materialsResponse.result.courseWorkMaterial;
-    if (!materials || materials.length == 0) {
-        document.getElementById('content').innerText += 'No material found.';
-        return;
-    }
-    console.log(materials);
-
-    // add materials for each topic
-    // TODO: test for material which has no topic
-    let materialLists = topicListElement.querySelectorAll('.material-list');
-    for (let materialList of materialLists) {
-
-        // remove old material-items from topic in DOM
-        let materialItems = materialList.querySelectorAll('.material-item');
-        for (let materialItem of materialItems) {
-            materialItem.remove();
-        }
-
-        let template = materialList.querySelector('.material-item-template');
-        let topicId = materialList.closest('.topic-item').querySelector('.topic-id').textContent;
-        for (let material of materials) {
-            if (topicId === material.topicId) {
-                clone = template.content.cloneNode(true);
-                clone.querySelector(".material-id").htmlFor = `${material.id}`;
-                clone.querySelector(".material-name").textContent = `${material.title}`;
-                materialList.appendChild(clone);
-            }
-        }
-    }
-}
 
 /* add checked materials and topics from source to destination 
    respect already present items
    prevent double entries (based on title, not id)
    mark added items with class
    */
+/*
 function mergeMaterials() {
     console.log("Merging src into dst");
     let dstTopicList = document.querySelector('#dst-material-container .topic-list');
@@ -637,4 +480,4 @@ function mergeMaterials() {
 
     }
 }
-
+*/

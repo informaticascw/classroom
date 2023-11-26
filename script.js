@@ -222,14 +222,14 @@ class MaterialList {
             console.log(topicResponse);
             return;
         }
-        
+
         // add corresponding topic to each material
         for (let [index, material] of this.materials.entries()) {
-            this.materials[index] = Object.assign({}, 
-                topics.find(topic => topic.topicId === material.topicId), 
+            this.materials[index] = Object.assign({},
+                topics.find(topic => topic.topicId === material.topicId),
                 material);
         }
-        
+
         return this.materials;
     }
     show() {
@@ -238,7 +238,7 @@ class MaterialList {
 
         let topicListElement = document.querySelector(`${this.selector} .topic-list`)
 
-        // remove old topics from DOM
+        // remove old topics and materials from DOM
         console.log(topicListElement);
         let topicItems = topicListElement.querySelectorAll('.topic-item');
         for (let topicItem of topicItems) {
@@ -254,39 +254,25 @@ class MaterialList {
         }
 
         // add new topics to dom
-        let template = topicListElement.querySelector('.topic-item-template');
-
+        let templateTopicItem = topicListElement.querySelector('.topic-item-template');
         for (let topic of uniqueTopics) {
-            let clone = template.content.cloneNode(true);
-            clone.querySelector(".topic-id").textContent = `${topic.topicId}`;
-            clone.querySelector(".topic-name").textContent = `${topic.name}`;
-            topicListElement.appendChild(clone);
-        }
+            let cloneTopicItem = templateTopicItem.content.cloneNode(true);
+            cloneTopicItem.querySelector(".topic-id").textContent = `${topic.topicId}`;
+            cloneTopicItem.querySelector(".topic-name").textContent = `${topic.name}`;
+            console.log(topicListElement)
 
-        // add materials for each topic
-        // TODO: test for material which has no topic
-        /*
-        let materialLists = topicListElement.querySelectorAll('.material-list');
-        for (let materialList of materialLists) {
-
-            // remove old material-items from topic in DOM
-            let materialItems = materialList.querySelectorAll('.material-item');
-            for (let materialItem of materialItems) {
-                materialItem.remove();
+            // add materials to topic
+            let materialListElement = cloneTopicItem.querySelector('.material-list');
+            let templateMaterialItem = materialListElement.querySelector('.material-item-template');
+            //let templateMaterialItem = materialListElement.querySelector('.material-item-template');
+            for (let material of this.materials.filter(material => material.topicId === topic.topicId)) {
+                let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
+                cloneMaterialItem.querySelector(".material-id").htmlFor = `${material.id}`;
+                cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
+                materialListElement.appendChild(cloneMaterialItem);
             }
-
-            let template = materialList.querySelector('.material-item-template');
-            let topicId = materialList.closest('.topic-item').querySelector('.topic-id').textContent;
-            for (let material of materials) {
-                if (topicId === material.topicId) {
-                    clone = template.content.cloneNode(true);
-                    clone.querySelector(".material-id").htmlFor = `${material.id}`;
-                    clone.querySelector(".material-name").textContent = `${material.title}`;
-                    materialList.appendChild(clone);
-                }
-            }
+            topicListElement.appendChild(cloneTopicItem);
         }
-        */
     }
 }
 

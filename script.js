@@ -204,7 +204,7 @@ class MaterialList {
         let materialResponse = await materialPromise;
         let topicResponse = await topicPromise;
 
-        // add retreived materials to class
+        // copy retreived materials to class
         try {
             this.materials = materialResponse.result.courseWorkMaterial
         } catch (error) {
@@ -213,7 +213,7 @@ class MaterialList {
             return;
         }
 
-        // add retreived topics to temp variable
+        // copy retreived topics to temp variable
         let topics;
         try {
             topics = topicResponse.result.topic
@@ -222,12 +222,14 @@ class MaterialList {
             console.log(topicResponse);
             return;
         }
-
+        
         // add corresponding topic to each material
-        for (let material of this.materials) {
-            material = Object.assign({}, topics.find(topic => topic.id === material.topicId))
+        for (let [index, material] of this.materials.entries()) {
+            this.materials[index] = Object.assign({}, 
+                topics.find(topic => topic.topicId === material.topicId), 
+                material);
         }
-
+        
         return this.materials;
     }
     show() {
@@ -246,7 +248,7 @@ class MaterialList {
         // create list of unique topics from all materials
         let uniqueTopics = [];
         for (let material of this.materials) {
-            if (!uniqueTopics.some(topic => topic.topicsId === material.topicId)) {
+            if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
                 uniqueTopics.push(material)
             }
         }

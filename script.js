@@ -76,7 +76,12 @@ function handleAuthClick() {
 
         let promise1 = courseLists["src-course-container"].load();
         let promise2 = courseLists["dst-course-container"].load();
-        await Promise.all([promise1, promise2])
+        console.log("await promise1 src-courses")
+        await promise1;
+        console.log("await promise2 dst-courses")
+        await promise2;
+        console.log("awaits promise 1 and 2 done")
+        //await Promise.all([promise1, promise2])
         courseLists["src-course-container"].show();
         courseLists["dst-course-container"].show();
     };
@@ -263,7 +268,7 @@ class MaterialList {
             let templateMaterialItem = materialListElement.querySelector('.material-item-template');
             for (let material of this.materials.filter(material => material.topicId === topic.topicId)) {
                 let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
-                cloneMaterialItem.querySelector(".material-id").htmlFor = `${material.id}`;
+                cloneMaterialItem.querySelector(".material-id").textContent = `${material.id}`;
                 cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
                 materialListElement.appendChild(cloneMaterialItem);
             }
@@ -271,15 +276,17 @@ class MaterialList {
             topicListElement.appendChild(cloneTopicItem);
         }
     }
-    select(id, check) {
+    select(id, checked) {
         for (let material of this.materials) {
             if (material.id === id) {
-                material.check = check;
+                material.checked = checked;
+                console.log("checked");
+                console.log(material);
             }
         }
     }
     selected() {
-        return this.materials.filter(material => material.check === "checked")
+        return this.materials.filter(material => material.checked === true)
     }
     add(srcMaterials) {
         // remove materials with status "added" 
@@ -304,6 +311,7 @@ class MaterialList {
     }
 }
 
+/*
 class SrcMaterialList extends MaterialList {
     constructor(selector) {
         // super keyword for calling the above 
@@ -318,7 +326,7 @@ class SrcMaterialList extends MaterialList {
     }
 
 }
-
+*/
 
 /**
  *  Objects of classes (global)
@@ -365,17 +373,21 @@ async function handleCheckTopic(selectObject) {
         materialLists["src-material-container"].select(id, checked);
     }
 
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected())
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
+    materialLists["dst-material-container"].show();
 }
 
 // TODO: this is still onload, doesnt work anymore
 async function handleCheckMaterial(selectObject) {
+    let materialItem = selectObject.closest('.material-item');
+    let materialId = materialItem.querySelector('.material-id').textContent;
     let topicItem = selectObject.closest('.topic-item');
     let topicInput = topicItem.querySelector('.topic-input');
     let materialInputs = topicItem.querySelectorAll('.material-input');
     let materialCounted = materialInputs.length
     let materialChecks = topicItem.querySelectorAll('.material-input:checked');
     let materialChecked = materialChecks.length
+
     if (materialChecked > 0) {
         topicInput.checked = true;
     } else {
@@ -387,7 +399,17 @@ async function handleCheckMaterial(selectObject) {
         topicInput.indeterminate = false;
     }
 
-    mergeMaterials();
+    // update source data 
+    console.log(materialId);
+    materialLists["src-material-container"].select(materialId, true);
+    // TOPO: also support uncheck
+    // TODO: add update source dom
+
+    // update destination data and dom
+    console.log("selected materials")
+    console.log(materialLists["src-material-container"].selected())
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
+    materialLists["dst-material-container"].show();
 }
 
 

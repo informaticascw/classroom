@@ -226,10 +226,12 @@ class MaterialList {
         }
 
         // add corresponding topic to each material
-        for (let [index, material] of this.materials.entries()) {
-            this.materials[index] = Object.assign({},
-                topics.find(topic => topic.topicId === material.topicId),
-                material);
+        if (this.materials.length > 0) {
+            for (let [index, material] of this.materials.entries()) {
+                this.materials[index] = Object.assign({},
+                    topics.find(topic => topic.topicId === material.topicId),
+                    material);
+            }
         }
 
         return this.materials;
@@ -270,6 +272,9 @@ class MaterialList {
                 let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
                 cloneMaterialItem.querySelector(".material-id").textContent = `${material.id}`;
                 cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
+                cloneMaterialItem.querySelector(".material-name").classList.add(material.status);
+                console.log("clone");
+                console.log(cloneMaterialItem);
                 materialListElement.appendChild(cloneMaterialItem);
             }
             // add cloned topic to dom
@@ -286,11 +291,13 @@ class MaterialList {
         }
     }
     selected() {
+        console.log("selected")
+        console.log(this.materials.filter(material => material.checked === true))
         return this.materials.filter(material => material.checked === true)
     }
     add(srcMaterials) {
         // remove materials with status "added" 
-        this.materials = this.materials.filter(material => material.status === "add");
+        this.materials = this.materials.filter(material => material.status !== "add");
         // remove status "update"
         for (let material of this.materials) {
             if (material.status === "update") {
@@ -300,9 +307,9 @@ class MaterialList {
 
         // add materials and assign status "update"
         for (let srcMaterial of srcMaterials) {
-            if (this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name)) {
+            if (this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title)) {
                 // TODO: doesn't work if same material name is in multiple topics
-                this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name).status = "update";
+                this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title).status = "update";
             } else {
                 srcMaterial.status = "add";
                 this.materials.push(srcMaterial);
@@ -377,23 +384,26 @@ async function handleCheckTopic(selectObject) {
     materialLists["dst-material-container"].show();
 }
 
-// TODO: this is still onload, doesnt work anymore
+// TODO: rewrite this function more simple, maybe move dom-stuff to class
 async function handleCheckMaterial(selectObject) {
     let materialItem = selectObject.closest('.material-item');
     let materialId = materialItem.querySelector('.material-id').textContent;
+    let materialChecked = false;
+    if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
+
     let topicItem = selectObject.closest('.topic-item');
     let topicInput = topicItem.querySelector('.topic-input');
     let materialInputs = topicItem.querySelectorAll('.material-input');
     let materialCounted = materialInputs.length
     let materialChecks = topicItem.querySelectorAll('.material-input:checked');
-    let materialChecked = materialChecks.length
+    let materialsChecked = materialChecks.length
 
-    if (materialChecked > 0) {
+    if (materialsChecked > 0) {
         topicInput.checked = true;
     } else {
         topicInput.checked = false;
     }
-    if (materialChecked > 0 && materialChecked < materialCounted) {
+    if (materialsChecked > 0 && materialsChecked < materialCounted) {
         topicInput.indeterminate = true;
     } else {
         topicInput.indeterminate = false;
@@ -401,8 +411,7 @@ async function handleCheckMaterial(selectObject) {
 
     // update source data 
     console.log(materialId);
-    materialLists["src-material-container"].select(materialId, true);
-    // TOPO: also support uncheck
+    materialLists["src-material-container"].select(materialId, materialChecked);
     // TODO: add update source dom
 
     // update destination data and dom

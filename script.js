@@ -111,6 +111,54 @@ function handleSignoutClick() {
 }
 
 /**
+ * Handles for user interaction
+ */
+
+async function handleSelectCourse(selectObject, container) {
+    let courseId = selectObject.value;
+    console.log(`user selected courseId ${courseId}`);
+    console.log(selectObject);
+
+    await materialLists[container].load(courseId);
+    materialLists[container].show();
+}
+
+async function handleCheckTopic(selectObject) {
+    // check/uncheck all materials in topic
+    let topicItem = selectObject.closest('.topic-item');
+    let topicId = topicItem.querySelector('.topic-id').textContent;
+    let topicChecked = false;
+    if (topicItem.querySelector('.topic-input:checked')) { topicChecked = true };
+
+    materialLists["src-material-container"].selectAllInTopic(topicId, topicChecked);
+
+    // adjust DOM of srcMaterials
+    materialLists["src-material-container"].show();
+
+    // adjust dstMaterials en DOM
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected()); // add maybe confusing as it removes previously added materials first, re-adding is what is actually does
+    materialLists["dst-material-container"].show();
+}
+
+async function handleCheckMaterial(selectObject) {
+    // check/uncheck material
+    let materialItem = selectObject.closest('.material-item');
+    let materialId = materialItem.querySelector('.material-id').textContent;
+    let materialChecked = false;
+    if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
+
+    // update source material and dom
+    materialLists["src-material-container"].select(materialId, materialChecked);
+    materialLists["src-material-container"].show();
+    
+    // update destination data and dom
+    console.log("selected materials")
+    console.log(materialLists["src-material-container"].selected())
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
+    materialLists["dst-material-container"].show();
+}
+
+/**
  *  Classes definitions
  */
 
@@ -170,7 +218,6 @@ class CourseList {
     }
 }
 
-// Inheritance example
 class MaterialList {
     constructor(selector) {
         this.selector = selector; // css selector
@@ -264,7 +311,22 @@ class MaterialList {
             let cloneTopicItem = templateTopicItem.content.cloneNode(true);
             cloneTopicItem.querySelector(".topic-id").textContent = `${topic.topicId}`;
             cloneTopicItem.querySelector(".topic-name").textContent = `${topic.name}`;
-            console.log(topicListElement)
+            if (cloneTopicItem.querySelector(".material-input")) {
+                // set check of topic according to underlying materials
+                let cloneTopicInput = cloneTopicItem.querySelector(".topic-input")
+                let materialCounted = this.materials.filter(material => material.topicId === topic.topicId).length;
+                let materialsChecked = this.materials.filter(material => material.topicId === topic.topicId && material.checked === true).length;                
+                if (materialsChecked > 0) {
+                    cloneTopicInput.checked = true;
+                } else {
+                    cloneTopicInput.checked = false;
+                }
+                if (materialsChecked > 0 && materialsChecked < materialCounted) {
+                    cloneTopicInput.indeterminate = true;
+                } else {
+                    cloneTopicInput.indeterminate = false;
+                }
+            }
             // add materials to cloned topic
             let materialListElement = cloneTopicItem.querySelector('.material-list');
             let templateMaterialItem = materialListElement.querySelector('.material-item-template');
@@ -273,20 +335,26 @@ class MaterialList {
                 cloneMaterialItem.querySelector(".material-id").textContent = `${material.id}`;
                 cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
                 cloneMaterialItem.querySelector(".material-name").classList.add(material.status);
-                console.log("clone");
-                console.log(cloneMaterialItem);
+                if (cloneMaterialItem.querySelector(".material-input")) {
+                    cloneMaterialItem.querySelector(".material-input").checked = material.checked;
+                }
                 materialListElement.appendChild(cloneMaterialItem);
             }
             // add cloned topic to dom
             topicListElement.appendChild(cloneTopicItem);
         }
     }
+    selectAllInTopic(topicId, checked) {
+        for (let material of this.materials) {
+            if (material.topicId === topicId) {
+                material.checked = checked;
+            }
+        }
+    }
     select(id, checked) {
         for (let material of this.materials) {
             if (material.id === id) {
                 material.checked = checked;
-                console.log("checked");
-                console.log(material);
             }
         }
     }
@@ -336,167 +404,3 @@ let materialLists = {
     "src-material-container": new MaterialList('#src-material-container'),
     "dst-material-container": new MaterialList('#dst-material-container')
 }
-
-
-/**
- * Handles for user interaction: selection of source classroom
- */
-
-async function handleSelectCourse(selectObject, container) {
-    let courseId = selectObject.value;
-    console.log(`user selected courseId ${courseId}`);
-    console.log(selectObject);
-
-    await materialLists[container].load(courseId);
-    materialLists[container].show();
-}
-
-async function handleCheckTopic(selectObject) {
-    // adjust checkboxes in DOM
-    let materialList = selectObject.closest('.topic-item');
-    let materialInputs = materialList.querySelectorAll('.material-input');
-    for (let materialInput of materialInputs) {
-        materialInput.checked = selectObject.checked
-    }
-
-    // update checkboxes in object materialLists["src-material-container"]
-    let topicList = selectObject.closest('.topic-list');
-    let materialItems = topicList.querySelectorAll('.material-item');
-    for (let materialItem of materialItems) {
-        let checked = materialItem.querySelector('.material-input').checked;
-        let id = materialItem.querySelector('.material-id').textContent;
-        materialLists["src-material-container"].select(id, checked);
-    }
-
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
-    materialLists["dst-material-container"].show();
-}
-
-// TODO: rewrite this function more simple, maybe move dom-stuff to class
-async function handleCheckMaterial(selectObject) {
-    let materialItem = selectObject.closest('.material-item');
-    let materialId = materialItem.querySelector('.material-id').textContent;
-    let materialChecked = false;
-    if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
-
-    let topicItem = selectObject.closest('.topic-item');
-    let topicInput = topicItem.querySelector('.topic-input');
-    let materialInputs = topicItem.querySelectorAll('.material-input');
-    let materialCounted = materialInputs.length
-    let materialChecks = topicItem.querySelectorAll('.material-input:checked');
-    let materialsChecked = materialChecks.length
-
-    if (materialsChecked > 0) {
-        topicInput.checked = true;
-    } else {
-        topicInput.checked = false;
-    }
-    if (materialsChecked > 0 && materialsChecked < materialCounted) {
-        topicInput.indeterminate = true;
-    } else {
-        topicInput.indeterminate = false;
-    }
-
-    // update source data 
-    console.log(materialId);
-    materialLists["src-material-container"].select(materialId, materialChecked);
-    // TODO: add update source dom
-
-    // update destination data and dom
-    console.log("selected materials")
-    console.log(materialLists["src-material-container"].selected())
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
-    materialLists["dst-material-container"].show();
-}
-
-
-
-/* add checked materials and topics from source to destination 
-   respect already present items
-   prevent double entries (based on title, not id)
-   mark added items with class
-   */
-/*
-function mergeMaterials() {
-    console.log("Merging src into dst");
-    let dstTopicList = document.querySelector('#dst-material-container .topic-list');
-    // merge topics
-    let srcTopicItems = document.querySelectorAll('#src-material-container .topic-item');
-    let dstTopicItems = document.querySelectorAll('#dst-material-container .topic-item');
-    console.log(srcTopicItems);
-    console.log(dstTopicItems);
-
-    for (let srcTopicItem of srcTopicItems) {
-        if (srcTopicItem.querySelector('input:checked') !== null) { // topic or material inside is checked}
-            // check if srcTopicItem is already present in dst
-            let srcTopicName = srcTopicItem.querySelector('.topic-name').textContent;
-            let srcDstMatch = false;
-            console.log(srcTopicItems);
-            console.log(dstTopicItems);
-            for (let dstTopicItem of dstTopicItems) {
-                let dstTopicName = dstTopicItem.querySelector('.topic-name').textContent;
-                if (srcTopicName === dstTopicName) {
-                    srcDstMatch = true;
-                }
-            }
-            // copy srcItemTopic to dst if not already present
-            if (!srcDstMatch) {
-                // add new topics to DOM
-                console.log("add Topic from src to dst");
-                let template = dstTopicList.querySelector('.topic-item-template');
-                clone = template.content.cloneNode(true);
-                clone.querySelector(".topic-id").textContent = `${srcTopicItem.querySelector(".topic-id").textContent}`;
-                clone.querySelector(".topic-name").textContent = `${srcTopicItem.querySelector(".topic-name").textContent}`;
-                clone.querySelector(".topic-item").classList.add("add");
-                dstTopicList.appendChild(clone);
-            }
-
-            // merge checked materials
-            // TODO: only add checked materialItems
-            let srcMaterialItems = document.querySelectorAll('#src-material-container .material-item');
-            let dstTopicItemsNew = document.querySelectorAll('#dst-material-container .topic-item');
-            // repeat for each source material
-            for (let srcMaterialItem of srcMaterialItems) {
-                if (srcMaterialItem.querySelector('input:checked') !== null) { // material is checked}
-
-                    console.log(srcMaterialItem);
-                    // find correct dstTopic
-                    for (let dstTopicItem of dstTopicItemsNew) {
-                        let dstTopicName = dstTopicItem.querySelector('.topic-name').textContent;
-                        let srcTopicName = srcMaterialItem.closest('.topic-item').querySelector('.topic-name').textContent;
-                        if (srcTopicName === dstTopicName) {
-                            // check if material is already in topic
-                            let dstMaterialItems = dstTopicItem.querySelectorAll('.material-item');
-                            let srcDstMatch = false;
-                            for (let dstMaterialItem of dstMaterialItems) {
-                                let srcMaterialName = srcMaterialItem.querySelector('.material-name').textContent;
-                                let dstMaterialName = dstMaterialItem.querySelector('.material-name').textContent;
-                                if (srcMaterialName === dstMaterialName) {
-                                    console.log(`${srcMaterialName}-${dstMaterialName}`);
-                                    console.log(dstMaterialItem);
-                                    if (!dstMaterialItem.classList.contains('add')) {
-                                        dstMaterialItem.classList.add('update');
-                                        console.log("update");
-                                    }
-                                    srcDstMatch = true;
-                                }
-                            }
-                            // copy srcItemMaterial to dst if not already present => ERRORS INSIDE
-                            if (!srcDstMatch) {
-                                // add new topics to DOM
-                                let template = dstTopicItem.querySelector('.material-item-template');
-                                clone = template.content.cloneNode(true);
-                                clone.querySelector(".material-id").textContent = `${srcMaterialItem.querySelector(".material-id").textContent}`;
-                                clone.querySelector(".material-name").textContent = `${srcMaterialItem.querySelector(".material-name").textContent}`;
-                                clone.querySelector(".material-item").classList.add("add");
-                                dstTopicItem.querySelector('.material-list').appendChild(clone);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-}
-*/

@@ -296,7 +296,9 @@ class MaterialList {
         return this.materials.filter(material => material.checked === true)
     }
     add(srcMaterials) {
-        // remove materials with status "added" 
+        // remove stuff
+
+        // remove all dstMaterials with status "added" 
         this.materials = this.materials.filter(material => material.status !== "add");
         // remove status "update"
         for (let material of this.materials) {
@@ -305,35 +307,21 @@ class MaterialList {
             }
         }
 
-        // add materials and assign status "update"
+        // add stuff
         for (let srcMaterial of srcMaterials) {
-            if (this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title)) {
-                // TODO: doesn't work if same material name is in multiple topics
-                this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title).status = "update";
-            } else {
+            // update all dstMaterials with same title as srcMaterial
+            while (this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.status === undefined)) {
+                this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.status === undefined).status = "update";
+            }
+            // add if title of srcMaterial is not in any dstMaterial
+            if (!this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title)) {
                 srcMaterial.status = "add";
                 this.materials.push(srcMaterial);
             }
+
         }
     }
 }
-
-/*
-class SrcMaterialList extends MaterialList {
-    constructor(selector) {
-        // super keyword for calling the above 
-        // class constructor
-        super(selector);
-        for (let material of this.materials) {
-            material.assign({ checkbox: false })
-        }
-    }
-    select(materialIds) {
-
-    }
-
-}
-*/
 
 /**
  *  Objects of classes (global)

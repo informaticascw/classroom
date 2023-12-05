@@ -120,6 +120,7 @@ async function handleSelectCourse(selectObject, container) {
     console.log(selectObject);
 
     await materialLists[container].load(courseId);
+    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
     materialLists[container].show();
 }
 
@@ -152,10 +153,9 @@ async function handleCheckMaterial(selectObject) {
     materialLists["src-material-container"].show();
     
     // update destination data and dom
-    console.log("selected materials")
-    console.log(materialLists["src-material-container"].selected())
     materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
     materialLists["dst-material-container"].show();
+
 }
 
 /**
@@ -311,7 +311,7 @@ class MaterialList {
             let cloneTopicItem = templateTopicItem.content.cloneNode(true);
             cloneTopicItem.querySelector(".topic-id").textContent = `${topic.topicId}`;
             cloneTopicItem.querySelector(".topic-name").textContent = `${topic.name}`;
-            if (cloneTopicItem.querySelector(".material-input")) {
+            if (cloneTopicItem.querySelector(".topic-input")) {
                 // set check of topic according to underlying materials
                 let cloneTopicInput = cloneTopicItem.querySelector(".topic-input")
                 let materialCounted = this.materials.filter(material => material.topicId === topic.topicId).length;
@@ -375,6 +375,10 @@ class MaterialList {
             }
         }
 
+        // TODO: 
+        // - when update check name and title (now only material is checked, not topic)
+        // - when adding, group items in same topic (now new topic is created because topicId differs) => requires deep copy at pudh command, among other things
+
         // add stuff
         for (let srcMaterial of srcMaterials) {
             // update all dstMaterials with same title as srcMaterial
@@ -384,7 +388,7 @@ class MaterialList {
             // add if title of srcMaterial is not in any dstMaterial
             if (!this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title)) {
                 srcMaterial.status = "add";
-                this.materials.push(srcMaterial);
+                this.materials.push(srcMaterial); // push copies the link, TODO: make a deep copy to prevent unintended shared data between src and dst
             }
 
         }

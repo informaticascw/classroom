@@ -32,10 +32,10 @@ ul.material-list {
   background-color: lightgrey;
 }
 
-.add {
+#dst-container .add {
   color: green;
 }
-.update {
+#dst-container .update {
   color: yellow;
 }
 

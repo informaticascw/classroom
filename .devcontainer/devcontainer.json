@@ -11,7 +11,7 @@
 	"portsAttributes": {
 		"8080": {
 			"label": "Webserver",
-			"onAutoForward": "openPreview"
+			"onAutoForward": "openBrowserOnce"
 		}
 	},
 	// Configure tool-specific properties.

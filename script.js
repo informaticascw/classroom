@@ -74,15 +74,16 @@ function handleAuthClick() {
         document.getElementById('signout_button').style.visibility = 'visible';
         document.getElementById('authorize_button').innerText = 'Refresh';
 
-        let promise1 = courseLists["src-course-container"].load();
-        let promise2 = courseLists["dst-course-container"].load();
-        console.log("await promise1 src-courses")
-        await promise1;
-        console.log("await promise2 dst-courses")
-        await promise2;
-        console.log("awaits promise 1 and 2 done")
-        //await Promise.all([promise1, promise2])
+        // this should be asynchronous, but it looks like gapi completes requests one by one
+        let srcPromise = courseLists["src-course-container"].load();
+        console.log("load src-courses done");
+        let dstPromise = courseLists["dst-course-container"].load();
+        console.log("load dst-courses done");
+        await srcPromise;
+        console.log("await promise src-courses done")
         courseLists["src-course-container"].show();
+        await dstPromise;
+        console.log("await promise dst-courses done")
         courseLists["dst-course-container"].show();
     };
 
@@ -151,7 +152,7 @@ async function handleCheckMaterial(selectObject) {
     // update source material and dom
     materialLists["src-material-container"].select(materialId, materialChecked);
     materialLists["src-material-container"].show();
-    
+
     // update destination data and dom
     materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
     materialLists["dst-material-container"].show();
@@ -170,17 +171,16 @@ class CourseList {
     // method to load materials in course
     async load() {
         // retrieve courses from gapi
-        //let response;
         let promise;
         try {
             promise = gapi.client.classroom.courses.list({
-                pageSize: 10,
+                pageSize: 50,
             });
         } catch (error) {
             console.log(error.message);
             return;
         }
-        let response = await promise; // await reponse will make response undefined
+        let response = await promise; 
         try {
             this.courses = response.result.courses;
         } catch (error) {
@@ -315,7 +315,7 @@ class MaterialList {
                 // set check of topic according to underlying materials
                 let cloneTopicInput = cloneTopicItem.querySelector(".topic-input")
                 let materialCounted = this.materials.filter(material => material.topicId === topic.topicId).length;
-                let materialsChecked = this.materials.filter(material => material.topicId === topic.topicId && material.checked === true).length;                
+                let materialsChecked = this.materials.filter(material => material.topicId === topic.topicId && material.checked === true).length;
                 if (materialsChecked > 0) {
                     cloneTopicInput.checked = true;
                 } else {
@@ -364,33 +364,29 @@ class MaterialList {
         return this.materials.filter(material => material.checked === true)
     }
     add(srcMaterials) {
-        // remove stuff
-
         // remove all dstMaterials with status "added" 
         this.materials = this.materials.filter(material => material.status !== "add");
-        // remove status "update"
-        for (let material of this.materials) {
-            if (material.status === "update") {
-                delete (material.status);
-            }
-        }
+        // delete status from all materials
+        this.materials.forEach(material => delete(material.status));
 
-        // TODO: 
-        // - when update check name and title (now only material is checked, not topic)
-        // - when adding, group items in same topic (now new topic is created because topicId differs) => requires deep copy at pudh command, among other things
-
-        // add stuff
+        // add materials
         for (let srcMaterial of srcMaterials) {
-            // update all dstMaterials with same title as srcMaterial
-            while (this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.status === undefined)) {
-                this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.status === undefined).status = "update";
-            }
-            // add if title of srcMaterial is not in any dstMaterial
-            if (!this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title)) {
-                srcMaterial.status = "add";
-                this.materials.push(srcMaterial); // push copies the link, TODO: make a deep copy to prevent unintended shared data between src and dst
-            }
+            let matchingMaterialAndTopic = this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.name === srcMaterial.name)
+            let matchingTopic = this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name)
 
+            let srcMaterialCopy = Object.assign({}, srcMaterial); // this is a shallow copy, TODO: make a deep copy to prevent unintended shared data between src and dst
+            srcMaterialCopy.status = "add";
+            if (matchingMaterialAndTopic) { // add new and remove old in topic
+                srcMaterialCopy.topicId = matchingMaterialAndTopic.topicId;
+                matchingMaterialAndTopic.status = "remove";
+            }
+            if (!matchingMaterialAndTopic && matchingTopic) { // add new in existing topic
+                srcMaterialCopy.topicId = matchingTopic.topicId;
+            }
+            if (!matchingMaterialAndTopic && !matchingTopic) { // add new in new topic
+                srcMaterialCopy.topicId = srcMaterialCopy.topicId; // new topicId will be asigned by gapi
+            }
+            this.materials.push(srcMaterialCopy);
         }
     }
 }

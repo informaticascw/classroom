@@ -38,6 +38,9 @@ ul.material-list {
 #dst-container .update {
   color: yellow;
 }
+#dst-container .remove {
+  text-decoration: line-through;
+}
 
 .log {
   width:c alc(100% -20px);

@@ -12,7 +12,11 @@ const DISCOVERY_DOC = 'https://classroom.googleapis.com/$discovery/rest';
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly https://www.googleapis.com/auth/classroom.topics.readonly';
+// readonly mode
+// const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly https://www.googleapis.com/auth/classroom.topics.readonly';
+// readwrite mode
+const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics.readonly';
+
 
 let tokenClient;
 let gapiInited = false;
@@ -290,12 +294,12 @@ class MaterialList {
     // method to load materials in course
     async save() {
         // save materiallist to gapi
-        material = this.materials.find(material => material.status === "add");
+        let material = this.materials.find(material => material.status === "add");
         console.log(`materialBeforeResponse:\n${material}`)
         let materialPromise;
         try {
             materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
-                courseId: `${courseId}`,
+                courseId: `${material.courseId}`,
                 body: `${material}`,
             });
         } catch (error) {
@@ -408,6 +412,12 @@ class MaterialList {
 
                 let srcMaterialCopy = Object.assign({}, srcMaterial); // this is a shallow copy, TODO: make a deep copy to prevent unintended shared data between src and dst
                 srcMaterialCopy.status = "add";
+                try {
+                    srcMaterialCopy.courseId = this.materials[0].courseId;
+                }
+                catch (error) {
+                    console.log("TODO: support adding materials to empty course");
+                }
                 if (matchingMaterialAndTopic) { // add new and remove old in topic
                     srcMaterialCopy.topicId = matchingMaterialAndTopic.topicId;
                     matchingMaterialAndTopic.status = "remove";

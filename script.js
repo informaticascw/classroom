@@ -159,6 +159,10 @@ async function handleCheckMaterial(selectObject) {
 
 }
 
+async function handleSaveClick(container) {
+    materialLists[container].save();
+}
+
 /**
  *  Classes definitions
  */
@@ -180,7 +184,7 @@ class CourseList {
             console.log(error.message);
             return;
         }
-        let response = await promise; 
+        let response = await promise;
         try {
             this.courses = response.result.courses;
         } catch (error) {
@@ -273,7 +277,7 @@ class MaterialList {
         }
 
         // add corresponding topic to each material
-        if (this.materials.length > 0) {
+        if (this.materials ? this.materials.length > 0 : false) {
             for (let [index, material] of this.materials.entries()) {
                 this.materials[index] = Object.assign({},
                     topics.find(topic => topic.topicId === material.topicId),
@@ -282,6 +286,28 @@ class MaterialList {
         }
 
         return this.materials;
+    }
+    // method to load materials in course
+    async save() {
+        // save materiallist to gapi
+        material = this.materials.find(material => material.status === "add");
+        console.log(`materialBeforeResponse:\n${material}`)
+        let materialPromise;
+        try {
+            materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
+                courseId: `${courseId}`,
+                body: `${material}`,
+            });
+        } catch (error) {
+            console.log(error.message);
+            return;
+        }
+
+        // wait untill data is retreived
+        let materialResponse = await materialPromise;
+        console.log(`materialResponse:\n${materialResponse}`)
+
+        return true;
     }
     show() {
         console.log("show()");
@@ -298,9 +324,12 @@ class MaterialList {
 
         // create list of unique topics from all materials
         let uniqueTopics = [];
-        for (let material of this.materials) {
-            if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
-                uniqueTopics.push(material)
+        console.log(`this.materials:\n${this.materials}`)
+        if (this.materials ? this.materials.length > 0 : false) {
+            for (let material of this.materials) {
+                if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
+                    uniqueTopics.push(material)
+                }
             }
         }
 
@@ -360,33 +389,41 @@ class MaterialList {
     }
     selected() {
         console.log("selected")
-        console.log(this.materials.filter(material => material.checked === true))
-        return this.materials.filter(material => material.checked === true)
+        console.log(this.materials ? this.materials.filter(material => material.checked === true) : "this.materials undefined")
+        return this.materials ? this.materials.filter(material => material.checked === true) : undefined;
     }
     add(srcMaterials) {
-        // remove all dstMaterials with status "added" 
-        this.materials = this.materials.filter(material => material.status !== "add");
-        // delete status from all materials
-        this.materials.forEach(material => delete(material.status));
+        if (this.materials ? this.materials.length > 0 : false) {
+            // remove all dstMaterials with status "added" 
+            this.materials = this.materials.filter(material => material.status !== "add");
+            // delete status from all materials
+            this.materials.forEach(material => delete (material.status));
+        }
 
         // add materials
-        for (let srcMaterial of srcMaterials) {
-            let matchingMaterialAndTopic = this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.name === srcMaterial.name)
-            let matchingTopic = this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name)
+        if (srcMaterials) {
+            for (let srcMaterial of srcMaterials) {
+                let matchingMaterialAndTopic = this.materials && this.materials.length > 0 ? this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.name === srcMaterial.name) : undefined;
+                let matchingTopic = this.materials && this.materials.length > 0 ? this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name) : undefined;
 
-            let srcMaterialCopy = Object.assign({}, srcMaterial); // this is a shallow copy, TODO: make a deep copy to prevent unintended shared data between src and dst
-            srcMaterialCopy.status = "add";
-            if (matchingMaterialAndTopic) { // add new and remove old in topic
-                srcMaterialCopy.topicId = matchingMaterialAndTopic.topicId;
-                matchingMaterialAndTopic.status = "remove";
+                let srcMaterialCopy = Object.assign({}, srcMaterial); // this is a shallow copy, TODO: make a deep copy to prevent unintended shared data between src and dst
+                srcMaterialCopy.status = "add";
+                if (matchingMaterialAndTopic) { // add new and remove old in topic
+                    srcMaterialCopy.topicId = matchingMaterialAndTopic.topicId;
+                    matchingMaterialAndTopic.status = "remove";
+                }
+                if (!matchingMaterialAndTopic && matchingTopic) { // add new in existing topic
+                    srcMaterialCopy.topicId = matchingTopic.topicId;
+                }
+                if (!matchingMaterialAndTopic && !matchingTopic) { // add new in new topic
+                    srcMaterialCopy.topicId = srcMaterialCopy.topicId; // new topicId will be asigned by gapi
+                }
+                if (this.materials && this.materials.length > 0) {
+                    this.materials.push(srcMaterialCopy);
+                } else {
+                    this.materials = srcMaterialCopy;
+                }
             }
-            if (!matchingMaterialAndTopic && matchingTopic) { // add new in existing topic
-                srcMaterialCopy.topicId = matchingTopic.topicId;
-            }
-            if (!matchingMaterialAndTopic && !matchingTopic) { // add new in new topic
-                srcMaterialCopy.topicId = srcMaterialCopy.topicId; // new topicId will be asigned by gapi
-            }
-            this.materials.push(srcMaterialCopy);
         }
     }
 }

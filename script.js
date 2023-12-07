@@ -179,6 +179,7 @@ class CourseList {
     // method to load materials in course
     async load() {
         // retrieve courses from gapi
+        // TODO: remove archived courses, in case of dstCourseList also remove readonly courses
         let promise;
         try {
             promise = gapi.client.classroom.courses.list({
@@ -294,13 +295,18 @@ class MaterialList {
     // method to load materials in course
     async save() {
         // save materiallist to gapi
-        let material = this.materials.find(material => material.status === "add");
-        console.log(`materialBeforeResponse:\n${material}`)
+        let materialFull = this.materials.find(material => material.status === "add");
+
+        const pick = (obj, arr) =>
+        arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
+        let materialSmall = pick(materialFull, ['title', 'description']); //, 'materials', 'topicId']);   
+
+        console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
         let materialPromise;
         try {
             materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
-                courseId: `${material.courseId}`,
-                body: `${material}`,
+                courseId: `${materialFull.courseId}`,
+                resource: `${JSON.stringify(materialSmall)}`,
             });
         } catch (error) {
             console.log(error.message);

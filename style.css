@@ -7,6 +7,10 @@ ul.material-list {
 /**
  * page layout
  */
+.warning {
+  background-color:rgba(255, 0, 0, 0.5);
+}
+
 .login {
   width: 100%;
 }

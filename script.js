@@ -15,7 +15,7 @@ const DISCOVERY_DOC = 'https://classroom.googleapis.com/$discovery/rest';
 // readonly mode
 // const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly https://www.googleapis.com/auth/classroom.topics.readonly';
 // readwrite mode
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics.readonly';
+const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics';
 
 
 let tokenClient;
@@ -179,7 +179,6 @@ class CourseList {
     // method to load materials in course
     async load() {
         // retrieve courses from gapi
-        // TODO: remove archived courses, in case of dstCourseList also remove readonly courses
         let promise;
         try {
             promise = gapi.client.classroom.courses.list({
@@ -190,13 +189,16 @@ class CourseList {
             return;
         }
         let response = await promise;
+
+        // store retreived courses in memory
         try {
-            this.courses = response.result.courses;
+            this.courses = response.result.courses.filter(course => course.courseState === "ACTIVE");
         } catch (error) {
             console.log(error.message);
             console.log(this.courses);
             return;
         }
+
         return this.courses;
     }
     show() {
@@ -294,11 +296,46 @@ class MaterialList {
     }
     // method to load materials in course
     async save() {
+        // create topics that do not exist yet and store topicId's that gapi returns
+
+        // create list of unique topics from all materials
+        let uniqueTopics = [];
+        console.log(`this.materials:\n${this.materials}`)
+        if (this.materials ? this.materials.length > 0 : false) {
+            for (let material of this.materials) {
+                if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
+                    uniqueTopics.push(material);
+                }
+            }
+        }
+        // add all topics containing only materials with status "add" using gapi
+        for (let topic of uniqueTopics) {
+            if (!this.materials.some(material => material.topicId === topic.topicId && material.status !== "add")) {
+                // add topic via gapi
+                const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
+                let topicWrite = pick(topic, ['name']);
+                let promise;
+                try {
+                    promise = gapi.client.classroom.courses.topics.create({
+                        courseId: `${topic.courseId}`,
+                        resource: `${JSON.stringify(topicWrite)}`,
+                    });
+                } catch (error) {
+                    console.log(error.message);
+                    return;
+                }
+                // wait untill topic is created and store topicId's that gapi returns
+                // TODO: rewrite to make more async
+                let response = await promise;
+                console.log(`topicResponse:\n${response}`);
+                // TODO: store topic
+            }
+        }
+
         // save materiallist to gapi
         let materialFull = this.materials.find(material => material.status === "add");
 
-        const pick = (obj, arr) =>
-        arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
+        const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
         let materialSmall = pick(materialFull, ['title', 'description']); //, 'materials', 'topicId']);   
 
         console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
@@ -317,7 +354,16 @@ class MaterialList {
         let materialResponse = await materialPromise;
         console.log(`materialResponse:\n${materialResponse}`)
 
-        return true;
+        // delete materials to be removed via gapi
+
+        // wait untill deletion is done
+
+        // update materiallist
+        this.load();
+        this.add(materialLists["src-material-container"].selected());
+        this.show();
+
+        return this.materials;
     }
     show() {
         console.log("show()");

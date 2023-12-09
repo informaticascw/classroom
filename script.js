@@ -309,6 +309,7 @@ class MaterialList {
             }
         }
         // add all topics containing only materials with status "add" using gapi
+        // TODO: code fails if topic already in course on google, but without materials (because our class only stored topics associated to materials)
         for (let topic of uniqueTopics) {
             if (!this.materials.some(material => material.topicId === topic.topicId && material.status !== "add")) {
                 // add topic via gapi
@@ -327,8 +328,9 @@ class MaterialList {
                 // wait untill topic is created and store topicId's that gapi returns
                 // TODO: rewrite to make more async
                 let response = await promise;
-                console.log(`topicResponse:\n${response}`);
-                // TODO: store topic
+                console.log(`topicResponse:\n${JSON.stringify(response)}`);
+                // store topicId with appropriate materials in memory
+                this.materials.filter(material => material.name === response.result.name).forEach(topic => topic.topicId = response.result.topicId) 
             }
         }
 
@@ -336,7 +338,7 @@ class MaterialList {
         let materialFull = this.materials.find(material => material.status === "add");
 
         const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
-        let materialSmall = pick(materialFull, ['title', 'description']); //, 'materials', 'topicId']);   
+        let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
 
         console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
         let materialPromise;
@@ -359,7 +361,7 @@ class MaterialList {
         // wait untill deletion is done
 
         // update materiallist
-        this.load();
+        this.load(this.materials[0].courseId);
         this.add(materialLists["src-material-container"].selected());
         this.show();
 

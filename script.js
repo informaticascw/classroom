@@ -233,9 +233,11 @@ class MaterialList {
     constructor(selector) {
         this.selector = selector; // css selector
         this.materials = [];
+        this.courseId = undefined;
     }
     // method to load materials in course
     async load(courseId) {
+        this.courseId = courseId;
         // retrieve materiallist from gapi
         let materialPromise;
         try {
@@ -274,7 +276,7 @@ class MaterialList {
         }
 
         // copy retreived topics to temp variable
-        let topics;
+        let topics = undefined;
         try {
             topics = topicResponse.result.topic
         } catch (error) {
@@ -283,12 +285,21 @@ class MaterialList {
             return;
         }
 
-        // add corresponding topic to each material
-        if (this.materials ? this.materials.length > 0 : false) {
-            for (let [index, material] of this.materials.entries()) {
-                this.materials[index] = Object.assign({},
-                    topics.find(topic => topic.topicId === material.topicId),
-                    material);
+        // add corresponding topic to each material]
+        if (topics ? topics.length > 0 : false) {
+            if (this.materials ? this.materials.length > 0 : false) {
+                for (let [index, material] of this.materials.entries()) {
+                    this.materials[index] = Object.assign({},
+                        topics.find(topic => topic.topicId === material.topicId),
+                        material);
+                }
+            }
+        }
+
+        // add topics that have no materials as empty materials with topic
+        for (let topic of topics) {
+            if (this.materials ? !this.materials.find(material => material.topicId === topic.topicId) : true) {
+                this.materials.push(topic);
             }
         }
 
@@ -315,53 +326,101 @@ class MaterialList {
                 // add topic via gapi
                 const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
                 let topicWrite = pick(topic, ['name']);
-                let promise;
+                let promise = undefined;
                 try {
                     promise = gapi.client.classroom.courses.topics.create({
-                        courseId: `${topic.courseId}`,
+                        courseId: this.courseId,
                         resource: `${JSON.stringify(topicWrite)}`,
                     });
-                } catch (error) {
+                }
+                catch (error) {
                     console.log(error.message);
                     return;
                 }
                 // wait untill topic is created and store topicId's that gapi returns
                 // TODO: rewrite to make more async
-                let response = await promise;
-                console.log(`topicResponse:\n${JSON.stringify(response)}`);
-                // store topicId with appropriate materials in memory
-                this.materials.filter(material => material.name === response.result.name).forEach(topic => topic.topicId = response.result.topicId) 
+                let response = undefined;
+                try {
+                    response = await promise;
+                    // console.log(`topicResponse:\n${JSON.stringify(response)}`);
+                }
+                catch (error) {
+                    console.log(error.message); // Network response was not OK
+                    return;
+                }
+                if (response.ok) {
+                    // store topicId with appropriate materials in memory
+                    this.materials.filter(material => material.name === response.result.name).forEach(topic => topic.topicId = response.result.topicId)
+                }
             }
         }
 
         // save materiallist to gapi
-        let materialFull = this.materials.find(material => material.status === "add");
+        let materialsFull = this.materials.filter(material => material.status === "add");
 
-        const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
-        let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
+        for (let materialFull of materialsFull) {
+            const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
+            let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
 
-        console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
-        let materialPromise;
-        try {
-            materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
-                courseId: `${materialFull.courseId}`,
-                resource: `${JSON.stringify(materialSmall)}`,
-            });
-        } catch (error) {
-            console.log(error.message);
-            return;
+            console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
+            let materialPromise = undefined;
+            try { // TODO: FIX: returns bad request the first time, ok the second time
+                materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
+                    courseId: this.courseId,
+                    resource: `${JSON.stringify(materialSmall)}`,
+                });
+            } catch (error) {
+                console.log(error.message);
+                return;
+            }
+
+            // wait untill data is retreived
+            let materialResponse = undefined;
+            try {
+                materialResponse = await materialPromise;
+                console.log(`materialAddResponse:\n${JSON.stringify(materialResponse)}`)
+            }
+            catch (error) {
+                console.log("ERROR: Network response was not OK");//throw new Error("Network response was not OK");
+            }
         }
-
-        // wait untill data is retreived
-        let materialResponse = await materialPromise;
-        console.log(`materialResponse:\n${materialResponse}`)
 
         // delete materials to be removed via gapi
 
-        // wait untill deletion is done
+        // save materiallist to gapi
+        materialsFull = this.materials.filter(material => material.status === "remove");
+
+        for (let materialFull of materialsFull) {
+            const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
+            let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
+
+            console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
+            let materialPromise = undefined;
+            try {
+                materialPromise = gapi.client.classroom.courses.courseWorkMaterials.delete({
+                    courseId: `${materialFull.courseId}`,
+                    id: `${materialFull.id}`,
+                });
+            } catch (error) {
+                console.log(error.message);
+                return;
+            }
+
+            // wait untill data is retreived
+            let materialResponse = undefined;
+            try {
+                materialResponse = await materialPromise;
+            }
+            catch (error) {
+                console.log("ERROR: Network response was not OK");//throw new Error("Network response was not OK");
+            }
+            console.log(`materialDeleteResponse:\n${materialResponse}`)
+        }
+
+        // TODO: delete topics which are empty / have become empty
 
         // update materiallist
-        this.load(this.materials[0].courseId);
+        this.load(this.courseId);
         this.add(materialLists["src-material-container"].selected());
         this.show();
 

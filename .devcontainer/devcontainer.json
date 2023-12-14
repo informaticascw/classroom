@@ -15,7 +15,6 @@
 		}
 	},
 	// Configure tool-specific properties.
-	// "customizations": {},
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
@@ -32,7 +31,8 @@
 				"merge-conflict.autoNavigateNextConflict.enabled": true // auto navigate to next merge conflict after resolving one
 			},
 			"extensions": [
-				"ms-vsliveshare.vsliveshare"
+				"ms-vsliveshare.vsliveshare", // add google-docs like typing in same file, click on live-share button in left icon pane
+				"mhutchie.git-graph" // add graphical viewer for branches and commits, click on button in Source-Code tab
 			]
 		}
 	}

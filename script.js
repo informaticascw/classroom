@@ -171,6 +171,11 @@ async function handleSaveClick(container) {
  *  Classes definitions
  */
 
+const COURSES_PAGE_SIZE = 100 ; // maximum number of courses
+const TOPICS_PAGE_SIZE = 50 ; // maximum number of topics per course
+const MATERIALS_PAGE_SIZE = 200 ; // maximum number of materials per course
+
+
 class CourseList {
     constructor(selector) {
         this.selector = selector; // css selector for html container that contains course-list
@@ -182,7 +187,7 @@ class CourseList {
         let promise;
         try {
             promise = gapi.client.classroom.courses.list({
-                pageSize: 50,
+                pageSize: COURSES_PAGE_SIZE,
             });
         } catch (error) {
             console.log(error.message);
@@ -243,7 +248,7 @@ class MaterialList {
         try {
             materialPromise = gapi.client.classroom.courses.courseWorkMaterials.list({
                 courseId: `${courseId}`,
-                pageSize: 50,
+                pageSize: MATERIALS_PAGE_SIZE,
             });
         } catch (error) {
             console.log(error.message);
@@ -255,7 +260,7 @@ class MaterialList {
         try {
             topicPromise = gapi.client.classroom.courses.topics.list({
                 courseId: `${courseId}`,
-                pageSize: 100, // Configure maximum number of classrooms here
+                pageSize: TOPICS_PAGE_SIZE, 
             });
         } catch (error) {
             console.log(error.message);

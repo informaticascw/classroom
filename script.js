@@ -255,7 +255,7 @@ class MaterialList {
         try {
             topicPromise = gapi.client.classroom.courses.topics.list({
                 courseId: `${courseId}`,
-                pageSize: 10,
+                pageSize: 100, // Configure maximum number of classrooms here
             });
         } catch (error) {
             console.log(error.message);

@@ -267,11 +267,11 @@ class MaterialList {
             return;
         }
 
-        // wait untill data is retreived
+        // wait until data is retrieved
         let materialResponse = await materialPromise;
         let topicResponse = await topicPromise;
 
-        // copy retreived materials to class
+        // copy retrieved materials to class
         try {
             this.materials = materialResponse.result.courseWorkMaterial
         } catch (error) {
@@ -280,7 +280,7 @@ class MaterialList {
             return;
         }
 
-        // copy retreived topics to temp variable
+        // copy retrieved topics to temp variable
         let topics = undefined;
         try {
             topics = topicResponse.result.topic
@@ -290,7 +290,7 @@ class MaterialList {
             return;
         }
 
-        // add corresponding topic to each material]
+        // add corresponding topic to each material
         if (topics ? topics.length > 0 : false) {
             if (this.materials ? this.materials.length > 0 : false) {
                 for (let [index, material] of this.materials.entries()) {
@@ -306,6 +306,20 @@ class MaterialList {
             if (this.materials ? !this.materials.find(material => material.topicId === topic.topicId) : true) {
                 this.materials.push(topic);
             }
+        }
+
+        // sort materials by topic position, then by material position within each topic
+        // this way the topics and materials will be shown in the same order as Google Classroom does
+        if (this.materials && Array.isArray(this.materials) && topics && Array.isArray(topics)) {
+            const topicPositionMap = Object.fromEntries(topics.map(topic => [topic.topicId, topic.position ?? 0]));
+            this.materials.sort((a, b) => {
+                const posA = topicPositionMap[a.topicId] ?? 0;
+                const posB = topicPositionMap[b.topicId] ?? 0;
+                if (posA !== posB) {
+                    return posA - posB;
+                }
+                return (a.position ?? 0) - (b.position ?? 0);
+            });
         }
 
         return this.materials;

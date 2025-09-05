@@ -8,13 +8,15 @@ const CLIENT_ID = '700908545505-6p39r6fvlj9l2mgs92f2q0s4rq9ubtv7.apps.googleuser
 const API_KEY = 'AIzaSyA7mTKuemz9MEZ5NChYKMjf4FnnrzimgYA';
 
 // Discovery doc URL for APIs used by the quickstart
-const DISCOVERY_DOC = 'https://classroom.googleapis.com/$discovery/rest';
+//const DISCOVERY_DOCS = [
+//    'https://classroom.googleapis.com/$discovery/rest',
+//    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+//];
+const DISCOVERY_DOCS =  ['https://classroom.googleapis.com/$discovery/rest']
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
-// readonly mode
-// const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly https://www.googleapis.com/auth/classroom.topics.readonly';
-// readwrite mode
+// const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive.file';
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics';
 
 
@@ -37,11 +39,12 @@ function gapiLoaded() {
  * discovery doc to initialize the API.
  */
 async function initializeGapiClient() {
+    console.log("regel 40")
     await gapi.client.init({
         apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
+        discoveryDocs: DISCOVERY_DOCS,
     });
-    gapiInited = true;
+    gapiInited = true;console.log("regel 45")
     maybeEnableButtons();
 }
 
@@ -125,7 +128,6 @@ async function handleSelectCourse(selectObject, container) {
     console.log(selectObject);
 
     await materialLists[container].load(courseId);
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
     materialLists[container].show();
 }
 
@@ -140,10 +142,6 @@ async function handleCheckTopic(selectObject) {
 
     // adjust DOM of srcMaterials
     materialLists["src-material-container"].show();
-
-    // adjust dstMaterials en DOM
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected()); // add maybe confusing as it removes previously added materials first, re-adding is what is actually does
-    materialLists["dst-material-container"].show();
 }
 
 async function handleCheckMaterial(selectObject) {
@@ -156,24 +154,19 @@ async function handleCheckMaterial(selectObject) {
     // update source material and dom
     materialLists["src-material-container"].select(materialId, materialChecked);
     materialLists["src-material-container"].show();
-
-    // update destination data and dom
-    materialLists["dst-material-container"].add(materialLists["src-material-container"].selected());
-    materialLists["dst-material-container"].show();
-
 }
 
-async function handleSaveClick(container) {
-    materialLists[container].save();
+async function handleCopyClick(srcContainer,dstContainer) {
+    materialLists[srcContainer].copySelection(materialLists[dstContainer].courseId);
 }
 
 /**
  *  Classes definitions
  */
 
-const COURSES_PAGE_SIZE = 100 ; // maximum number of courses
-const TOPICS_PAGE_SIZE = 50 ; // maximum number of topics per course
-const MATERIALS_PAGE_SIZE = 200 ; // maximum number of materials per course
+const COURSES_PAGE_SIZE = 100; // maximum number of courses
+const TOPICS_PAGE_SIZE = 50; // maximum number of topics per course
+const MATERIALS_PAGE_SIZE = 200; // maximum number of materials per course
 
 
 class CourseList {
@@ -240,7 +233,7 @@ class MaterialList {
         this.materials = [];
         this.courseId = undefined;
     }
-    // method to load materials in course
+
     async load(courseId) {
         this.courseId = courseId;
         // retrieve materiallist from gapi
@@ -260,7 +253,7 @@ class MaterialList {
         try {
             topicPromise = gapi.client.classroom.courses.topics.list({
                 courseId: `${courseId}`,
-                pageSize: TOPICS_PAGE_SIZE, 
+                pageSize: TOPICS_PAGE_SIZE,
             });
         } catch (error) {
             console.log(error.message);
@@ -302,148 +295,99 @@ class MaterialList {
         }
 
         // add topics that have no materials as empty materials with topic
-        for (let topic of topics) {
-            if (this.materials ? !this.materials.find(material => material.topicId === topic.topicId) : true) {
-                this.materials.push(topic);
-            }
-        }
-
-        // sort materials by topic position, then by material position within each topic
-        // this way the topics and materials will be shown in the same order as Google Classroom does
-        if (this.materials && Array.isArray(this.materials) && topics && Array.isArray(topics)) {
-            const topicPositionMap = Object.fromEntries(topics.map(topic => [topic.topicId, topic.position ?? 0]));
-            this.materials.sort((a, b) => {
-                const posA = topicPositionMap[a.topicId] ?? 0;
-                const posB = topicPositionMap[b.topicId] ?? 0;
-                if (posA !== posB) {
-                    return posA - posB;
+        if (topics ? topics.length > 0 : false) {
+            for (let topic of topics) {
+                if (this.materials ? !this.materials.find(material => material.topicId === topic.topicId) : true) {
+                    this.materials.push(topic);
                 }
-                return (a.position ?? 0) - (b.position ?? 0);
-            });
+            }
         }
 
         return this.materials;
     }
-    // method to load materials in course
-    async save() {
-        // create topics that do not exist yet and store topicId's that gapi returns
 
-        // create list of unique topics from all materials
-        let uniqueTopics = [];
-        console.log(`this.materials:\n${this.materials}`)
-        if (this.materials ? this.materials.length > 0 : false) {
-            for (let material of this.materials) {
-                if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
-                    uniqueTopics.push(material);
-                }
-            }
-        }
-        // add all topics containing only materials with status "add" using gapi
-        // TODO: code fails if topic already in course on google, but without materials (because our class only stored topics associated to materials)
-        for (let topic of uniqueTopics) {
-            if (!this.materials.some(material => material.topicId === topic.topicId && material.status !== "add")) {
-                // add topic via gapi
-                const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
-                let topicWrite = pick(topic, ['name']);
-                let promise = undefined;
-                try {
-                    promise = gapi.client.classroom.courses.topics.create({
-                        courseId: this.courseId,
-                        resource: `${JSON.stringify(topicWrite)}`,
-                    });
-                }
-                catch (error) {
-                    console.log(error.message);
-                    return;
-                }
-                // wait untill topic is created and store topicId's that gapi returns
-                // TODO: rewrite to make more async
-                let response = undefined;
-                try {
-                    response = await promise;
-                    // console.log(`topicResponse:\n${JSON.stringify(response)}`);
-                }
-                catch (error) {
-                    console.log(error.message); // Network response was not OK
-                    return;
-                }
-                if (response.ok) {
-                    // store topicId with appropriate materials in memory
-                    this.materials.filter(material => material.name === response.result.name).forEach(topic => topic.topicId = response.result.topicId)
-                }
-            }
-        }
+    async copySelection(dstCourseId) {
+        // Load destination topics
+        let dstTopicsResponse = await gapi.client.classroom.courses.topics.list({
+            courseId: dstCourseId,
+            pageSize: TOPICS_PAGE_SIZE,
+        });
+        let dstTopics = dstTopicsResponse.result.topic || [];
 
-        // save materiallist to gapi
-        let materialsFull = this.materials.filter(material => material.status === "add");
+        // Get selected materials from source
+        let selectedMaterials = this.selected();
+        if (!selectedMaterials || selectedMaterials.length === 0) return;
 
-        for (let materialFull of materialsFull) {
-            const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
-            let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
-
-            console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
-            let materialPromise = undefined;
-            try { // TODO: FIX: returns bad request the first time, ok the second time
-                materialPromise = gapi.client.classroom.courses.courseWorkMaterials.create({
-                    courseId: this.courseId,
-                    resource: `${JSON.stringify(materialSmall)}`,
+        // Determine unique selected topics from selected materials
+        let selectedTopics = [];
+        for (let material of selectedMaterials) {
+            if (material.name && !selectedTopics.some(topic => topic.name === material.name)) {
+                selectedTopics.push({
+                    name: material.name,
+                    topicId: material.topicId
                 });
-            } catch (error) {
-                console.log(error.message);
-                return;
-            }
-
-            // wait untill data is retreived
-            let materialResponse = undefined;
-            try {
-                materialResponse = await materialPromise;
-                console.log(`materialAddResponse:\n${JSON.stringify(materialResponse)}`)
-            }
-            catch (error) {
-                console.log("ERROR: Network response was not OK");//throw new Error("Network response was not OK");
             }
         }
 
-        // delete materials to be removed via gapi
-
-        // save materiallist to gapi
-        materialsFull = this.materials.filter(material => material.status === "remove");
-
-        for (let materialFull of materialsFull) {
-            const pick = (obj, arr) => arr.reduce((acc, record) => (record in obj && (acc[record] = obj[record]), acc), {});
-            let materialSmall = pick(materialFull, ['title', 'description', 'topicId']);  //'materials',
-
-            console.log(`materialBeforeResponse:\n${JSON.stringify(materialSmall)}`)
-            let materialPromise = undefined;
-            try {
-                materialPromise = gapi.client.classroom.courses.courseWorkMaterials.delete({
-                    courseId: `${materialFull.courseId}`,
-                    id: `${materialFull.id}`,
+        // Copy topics to destination if they do not exist yet (by name)
+        let topicNameToIdMap = {};
+        for (let topic of selectedTopics) {
+            let existingDstTopic = dstTopics.find(dstTopic => dstTopic.name === topic.name);
+            if (existingDstTopic) {
+                topicNameToIdMap[topic.name] = existingDstTopic.topicId;
+            } else {
+                let topicCreateResponse = await gapi.client.classroom.courses.topics.create({
+                    courseId: dstCourseId,
+                    resource: { name: topic.name }
                 });
-            } catch (error) {
-                console.log(error.message);
-                return;
+                topicNameToIdMap[topic.name] = topicCreateResponse.result.topicId;
             }
-
-            // wait untill data is retreived
-            let materialResponse = undefined;
-            try {
-                materialResponse = await materialPromise;
-            }
-            catch (error) {
-                console.log("ERROR: Network response was not OK");//throw new Error("Network response was not OK");
-            }
-            console.log(`materialDeleteResponse:\n${materialResponse}`)
         }
 
-        // TODO: delete topics which are empty / have become empty
+        // Copy each selected material to destination, making new copies of all attachments
+        for (let srcMaterial of selectedMaterials) {
+            let newMaterials = [];
+            if (srcMaterial.materials && Array.isArray(srcMaterial.materials)) {
+                for (const mat of srcMaterial.materials) {
+                    if (mat.driveFile && mat.driveFile.driveFile) {
+                        // Make a copy of the file in Google Drive
+                        let fileId = mat.driveFile.driveFile.id;
+                        let fileCopyResponse = await gapi.client.drive.files.copy({
+                            fileId: fileId,
+                            resource: {
+                                name: mat.driveFile.driveFile.title + " (Copy)"
+                            }
+                        });
+                        // Add the copied file to the new materials array
+                        newMaterials.push({
+                            driveFile: {
+                                driveFile: {
+                                    id: fileCopyResponse.result.id,
+                                    title: fileCopyResponse.result.name
+                                }
+                            }
+                        });
+                    } else {
+                        // For other material types, just copy the reference
+                        newMaterials.push(mat);
+                    }
+                }
+            }
 
-        // update materiallist
-        this.load(this.courseId);
-        this.add(materialLists["src-material-container"].selected());
-        this.show();
+            // Prepare material object for creation
+            let newMaterial = {
+                title: srcMaterial.title,
+                description: srcMaterial.description,
+                topicId: topicNameToIdMap[srcMaterial.name] || undefined,
+                materials: newMaterials
+            };
+            await gapi.client.classroom.courses.courseWorkMaterials.create({
+                courseId: dstCourseId,
+                resource: newMaterial
+            });
+        }
 
-        return this.materials;
+        console.log("Copy complete!");
     }
     show() {
         console.log("show()");
@@ -527,46 +471,6 @@ class MaterialList {
         console.log("selected")
         console.log(this.materials ? this.materials.filter(material => material.checked === true) : "this.materials undefined")
         return this.materials ? this.materials.filter(material => material.checked === true) : undefined;
-    }
-    add(srcMaterials) {
-        if (this.materials ? this.materials.length > 0 : false) {
-            // remove all dstMaterials with status "added" 
-            this.materials = this.materials.filter(material => material.status !== "add");
-            // delete status from all materials
-            this.materials.forEach(material => delete (material.status));
-        }
-
-        // add materials
-        if (srcMaterials) {
-            for (let srcMaterial of srcMaterials) {
-                let matchingMaterialAndTopic = this.materials && this.materials.length > 0 ? this.materials.find(dstMaterial => dstMaterial.title === srcMaterial.title && dstMaterial.name === srcMaterial.name) : undefined;
-                let matchingTopic = this.materials && this.materials.length > 0 ? this.materials.find(dstMaterial => dstMaterial.name === srcMaterial.name) : undefined;
-
-                let srcMaterialCopy = Object.assign({}, srcMaterial); // this is a shallow copy, TODO: make a deep copy to prevent unintended shared data between src and dst
-                srcMaterialCopy.status = "add";
-                try {
-                    srcMaterialCopy.courseId = this.materials[0].courseId;
-                }
-                catch (error) {
-                    console.log("TODO: support adding materials to empty course");
-                }
-                if (matchingMaterialAndTopic) { // add new and remove old in topic
-                    srcMaterialCopy.topicId = matchingMaterialAndTopic.topicId;
-                    matchingMaterialAndTopic.status = "remove";
-                }
-                if (!matchingMaterialAndTopic && matchingTopic) { // add new in existing topic
-                    srcMaterialCopy.topicId = matchingTopic.topicId;
-                }
-                if (!matchingMaterialAndTopic && !matchingTopic) { // add new in new topic
-                    srcMaterialCopy.topicId = srcMaterialCopy.topicId; // new topicId will be asigned by gapi
-                }
-                if (this.materials && this.materials.length > 0) {
-                    this.materials.push(srcMaterialCopy);
-                } else {
-                    this.materials = srcMaterialCopy;
-                }
-            }
-        }
     }
 }
 

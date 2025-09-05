@@ -1,7 +1,7 @@
 {
-	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"image": "mcr.microsoft.com/devcontainers/universal:latest",
 	"features": {
-		"ghcr.io/devcontainers-contrib/features/http-server:1": {}
+		"ghcr.io/devcontainers-contrib/features/http-server": {}
 	},
 	"postStartCommand": "nohup bash -c 'http-server -c-1 > .nohup_webserver.out 2>&1 & rm nohup.out &'", // start webserver without cache on port 8080 nocache and leave it running in background
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

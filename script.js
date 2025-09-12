@@ -4,21 +4,28 @@
 /* exported handleSignoutClick */
 
 // TODO(developer): Set to client ID and API key from the Developer Console
+// only classroom
 const CLIENT_ID = '700908545505-6p39r6fvlj9l2mgs92f2q0s4rq9ubtv7.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyA7mTKuemz9MEZ5NChYKMjf4FnnrzimgYA';
+// 2 with drive
+// const CLIENT_ID = '229885589899-19danounelet921mre73jpbhv3hn05tj.apps.googleusercontent.com';
+// const API_KEY = 'AIzaSyAd8vDtDSSdEN5-2NjutBvdsDkHa-SZntI';
 
 // Discovery doc URL for APIs used by the quickstart
 //const DISCOVERY_DOCS = [
 //    'https://classroom.googleapis.com/$discovery/rest',
 //    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
 //];
-const DISCOVERY_DOCS =  ['https://classroom.googleapis.com/$discovery/rest']
+//const DISCOVERY_DOCS = ['https://classroom.googleapis.com/$discovery/rest']
+const DISCOVERY_DOCS = [
+    'https://classroom.googleapis.com/$discovery/rest',
+    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+];
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
 // const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive.file';
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics';
-
+const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
 
 let tokenClient;
 let gapiInited = false;
@@ -39,12 +46,11 @@ function gapiLoaded() {
  * discovery doc to initialize the API.
  */
 async function initializeGapiClient() {
-    console.log("regel 40")
     await gapi.client.init({
         apiKey: API_KEY,
         discoveryDocs: DISCOVERY_DOCS,
     });
-    gapiInited = true;console.log("regel 45")
+    gapiInited = true; 
     maybeEnableButtons();
 }
 
@@ -125,7 +131,7 @@ function handleSignoutClick() {
 async function handleSelectCourse(selectObject, container) {
     let courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
-    console.log(selectObject);
+    //console.log(selectObject);
 
     await materialLists[container].load(courseId);
     materialLists[container].show();
@@ -156,8 +162,13 @@ async function handleCheckMaterial(selectObject) {
     materialLists["src-material-container"].show();
 }
 
-async function handleCopyClick(srcContainer,dstContainer) {
-    materialLists[srcContainer].copySelection(materialLists[dstContainer].courseId);
+async function handleCopyClick(srcContainer, dstContainer) {
+    console.log("start copying");
+    await materialLists[srcContainer].copySelection(materialLists[dstContainer].courseId);
+    console.log("start reloading dstContainer");
+    await materialLists[dstContainer].load(materialLists[dstContainer].courseId);
+    console.log("start showing dstContainer");
+    materialLists[dstContainer].show();
 }
 
 /**
@@ -297,8 +308,10 @@ class MaterialList {
         // add topics that have no materials as empty materials with topic
         if (topics ? topics.length > 0 : false) {
             for (let topic of topics) {
-                if (this.materials ? !this.materials.find(material => material.topicId === topic.topicId) : true) {
-                    this.materials.push(topic);
+                if (this.materials) {
+                    if (!this.materials.find(material => material.topicId === topic.topicId)) {
+                        this.materials.push(topic);
+                    }
                 }
             }
         }
@@ -334,13 +347,35 @@ class MaterialList {
         for (let topic of selectedTopics) {
             let existingDstTopic = dstTopics.find(dstTopic => dstTopic.name === topic.name);
             if (existingDstTopic) {
+                console.log(`No need to copy topic "${topic.name}", topic already exists in destination, using existing topic.`);
                 topicNameToIdMap[topic.name] = existingDstTopic.topicId;
             } else {
-                let topicCreateResponse = await gapi.client.classroom.courses.topics.create({
-                    courseId: dstCourseId,
-                    resource: { name: topic.name }
-                });
-                topicNameToIdMap[topic.name] = topicCreateResponse.result.topicId;
+                try {
+                    let topicCreateResponse = await gapi.client.classroom.courses.topics.create({
+                        courseId: dstCourseId,
+                        resource: { name: topic.name }
+                    });
+                    topicNameToIdMap[topic.name] = topicCreateResponse.result.topicId;
+                    console.log(`Copied topic "${topic.name}" to destination.`);
+                } catch (error) {
+                    console.log(`Could not copy topic "${topic.name}" to destination: ${error.message}`);
+                }
+            }
+        }
+
+        // Find or create "Classroom" folder in Drive
+        let classroomFolderId = await findOrCreateFolder('Classroom', null);
+        // Find or create folder for this destination classroom
+        let dstCourse = courseLists["dst-course-container"].courses.find(c => c.id === dstCourseId);
+        let dstCourseName = dstCourse ? dstCourse.name : `Classroom ${dstCourseId}`;
+        let dstClassroomFolderId = await findOrCreateFolder(dstCourseName, classroomFolderId);
+
+        // Extract class name from dstCourseName (between first and second '|')
+        let className = "copy";
+        if (dstCourseName) {
+            let parts = dstCourseName.split('|');
+            if (parts.length > 2) {
+                className = parts[1].trim();
             }
         }
 
@@ -350,25 +385,31 @@ class MaterialList {
             if (srcMaterial.materials && Array.isArray(srcMaterial.materials)) {
                 for (const mat of srcMaterial.materials) {
                     if (mat.driveFile && mat.driveFile.driveFile) {
-                        // Make a copy of the file in Google Drive
                         let fileId = mat.driveFile.driveFile.id;
-                        let fileCopyResponse = await gapi.client.drive.files.copy({
-                            fileId: fileId,
-                            resource: {
-                                name: mat.driveFile.driveFile.title + " (Copy)"
-                            }
-                        });
-                        // Add the copied file to the new materials array
-                        newMaterials.push({
-                            driveFile: {
-                                driveFile: {
-                                    id: fileCopyResponse.result.id,
-                                    title: fileCopyResponse.result.name
+                        let srcfilename = mat.driveFile.driveFile.title ? mat.driveFile.driveFile.title : "Unnamed";
+                        let dstfilename = srcfilename + " (" + className + ")";
+
+                        try {
+                            let fileCopyResponse = await gapi.client.drive.files.copy({
+                                fileId: fileId,
+                                resource: {
+                                    name: dstfilename,
+                                    parents: [dstClassroomFolderId]
                                 }
-                            }
-                        });
+                            });
+                            newMaterials.push({
+                                driveFile: {
+                                    driveFile: {
+                                        id: fileCopyResponse.result.id,
+                                        title: fileCopyResponse.result.name
+                                    }
+                                }
+                            });
+                            console.log(`  Copied file ${srcfilename} to ${dstfilename}`);
+                        } catch (error) {
+                            console.log(`  Could not copy file ${srcfilename} to ${dstfilename}`);
+                        }
                     } else {
-                        // For other material types, just copy the reference
                         newMaterials.push(mat);
                     }
                 }
@@ -381,22 +422,26 @@ class MaterialList {
                 topicId: topicNameToIdMap[srcMaterial.name] || undefined,
                 materials: newMaterials
             };
-            await gapi.client.classroom.courses.courseWorkMaterials.create({
-                courseId: dstCourseId,
-                resource: newMaterial
-            });
+            try {
+                await gapi.client.classroom.courses.courseWorkMaterials.create({
+                    courseId: dstCourseId,
+                    resource: newMaterial
+                });
+                console.log(`Copied material "${srcMaterial.title}" to destination.`);
+            } catch (error) {
+                console.log(`Could not copy material "${srcMaterial.title}" to destination: ${error.message}`);
+            }
         }
 
-        console.log("Copy complete!");
     }
     show() {
         console.log("show()");
-        console.log(this.materials);
+        //console.log(this.materials);
 
         let topicListElement = document.querySelector(`${this.selector} .topic-list`)
 
         // remove old topics and materials from DOM
-        console.log(topicListElement);
+        //console.log(topicListElement);
         let topicItems = topicListElement.querySelectorAll('.topic-item');
         for (let topicItem of topicItems) {
             topicItem.remove();
@@ -404,7 +449,7 @@ class MaterialList {
 
         // create list of unique topics from all materials
         let uniqueTopics = [];
-        console.log(`this.materials:\n${this.materials}`)
+        //console.log(`this.materials:\n${this.materials}`)
         if (this.materials ? this.materials.length > 0 : false) {
             for (let material of this.materials) {
                 if (!uniqueTopics.some(topic => topic.topicId === material.topicId)) {
@@ -469,9 +514,39 @@ class MaterialList {
     }
     selected() {
         console.log("selected")
-        console.log(this.materials ? this.materials.filter(material => material.checked === true) : "this.materials undefined")
+        //console.log(this.materials ? this.materials.filter(material => material.checked === true) : "this.materials undefined")
         return this.materials ? this.materials.filter(material => material.checked === true) : undefined;
     }
+}
+
+// Helper function to find or create a folder by name and parent
+async function findOrCreateFolder(folderName, parentId) {
+    // Search for folder
+    let query = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+    if (parentId) {
+        query += ` and '${parentId}' in parents`;
+    }
+    let response = await gapi.client.drive.files.list({
+        q: query,
+        fields: 'files(id, name)',
+        spaces: 'drive'
+    });
+    if (response.result.files && response.result.files.length > 0) {
+        return response.result.files[0].id;
+    }
+    // Create folder if not found
+    let folderMetadata = {
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder'
+    };
+    if (parentId) {
+        folderMetadata.parents = [parentId];
+    }
+    let createResponse = await gapi.client.drive.files.create({
+        resource: folderMetadata,
+        fields: 'id'
+    });
+    return createResponse.result.id;
 }
 
 /**

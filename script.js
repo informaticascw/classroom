@@ -252,6 +252,7 @@ class MaterialList {
         try {
             materialPromise = gapi.client.classroom.courses.courseWorkMaterials.list({
                 courseId: `${courseId}`,
+                courseWorkMaterialStates: ["DRAFT", "PUBLISHED"],
                 pageSize: MATERIALS_PAGE_SIZE,
             });
         } catch (error) {
@@ -278,6 +279,7 @@ class MaterialList {
         // copy retrieved materials to class
         try {
             this.materials = materialResponse.result.courseWorkMaterial
+            console.log(this.materials);
         } catch (error) {
             console.log(error.message);
             console.log(materialResponse);
@@ -438,7 +440,7 @@ class MaterialList {
                 description: srcMaterial.description,
                 topicId: topicNameToIdMap[srcMaterial.name] || undefined,
                 materials: newMaterials,
-                state: `DRAFT` // 'DRAFT' for concept or 'PUBLISHED' for posted
+                state: "DRAFT" // 'DRAFT' for concept or 'PUBLISHED' for posted
             };
             try {
                 await gapi.client.classroom.courses.courseWorkMaterials.create({
@@ -515,6 +517,9 @@ class MaterialList {
                 cloneMaterialItem.querySelector(".material-id").textContent = `${material.id}`;
                 cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
                 cloneMaterialItem.querySelector(".material-name").classList.add(material.status);
+                if (material.state === "DRAFT") {
+                    cloneMaterialItem.querySelector(".material-name").classList.add("draft");
+                }
                 if (cloneMaterialItem.querySelector(".material-input")) {
                     cloneMaterialItem.querySelector(".material-input").checked = material.checked;
                 }

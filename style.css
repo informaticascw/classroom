@@ -53,3 +53,7 @@ ul.material-list {
   overflow-y: auto;
   height: 200px;
 }
+
+.draft {
+  opacity: 0.5;
+}

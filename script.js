@@ -320,6 +320,11 @@ class MaterialList {
     }
 
     async copySelection(dstCourseId) {
+
+        // log element in DOM
+        let logElement = document.querySelector(`#logcontent`)
+        logElement.textContent =`Start copying!\n`;
+
         // Load destination topics
         let dstTopicsResponse = await gapi.client.classroom.courses.topics.list({
             courseId: dstCourseId,
@@ -344,10 +349,10 @@ class MaterialList {
 
         // Copy topics to destination if they do not exist yet (by name)
         let topicNameToIdMap = {};
-        for (let topic of selectedTopics) {
+        for (let topic of selectedTopics.slice().reverse()) { // slice makes a copy of the array, reverse to keep original order afte copying]
             let existingDstTopic = dstTopics.find(dstTopic => dstTopic.name === topic.name);
             if (existingDstTopic) {
-                console.log(`No need to copy topic "${topic.name}", topic already exists in destination, using existing topic.`);
+                logElement.textContent +=`No need to copy topic "${topic.name}", topic already exists in destination, using existing topic.\n`;
                 topicNameToIdMap[topic.name] = existingDstTopic.topicId;
             } else {
                 try {
@@ -356,9 +361,9 @@ class MaterialList {
                         resource: { name: topic.name }
                     });
                     topicNameToIdMap[topic.name] = topicCreateResponse.result.topicId;
-                    console.log(`Copied topic "${topic.name}" to destination.`);
+                    logElement.textContent +=`Copied topic "${topic.name}" to destination.\n`;
                 } catch (error) {
-                    console.log(`Could not copy topic "${topic.name}" to destination: ${error.message}`);
+                    logElement.textContent +=`Could not copy topic "${topic.name}" to destination: ${error.message}\n`;
                 }
             }
         }
@@ -380,10 +385,11 @@ class MaterialList {
         }
 
         // Copy each selected material to destination, making new copies of all attachments
-        for (let srcMaterial of selectedMaterials) {
+        for (let srcMaterial of selectedMaterials.slice().reverse()) { // slice makes a copy of the array, reverse to keep original order afte copying]
             let newMaterials = [];
             if (srcMaterial.materials && Array.isArray(srcMaterial.materials)) {
                 for (const mat of srcMaterial.materials) {
+                    mat.status = 'DRAFT'; // status can be DRAFT or PUBLISHED
                     if (mat.driveFile && mat.driveFile.driveFile) {
                         let fileId = mat.driveFile.driveFile.id;
                         let srcfilename = mat.driveFile.driveFile.title ? mat.driveFile.driveFile.title : "Unnamed";
@@ -410,9 +416,9 @@ class MaterialList {
                                     }
                                 }
                             });
-                            console.log(`  Copied file ${srcfilename} to ${dstfilename}`);
+                            logElement.textContent +=`  Copied file ${srcfilename} to ${dstfilename}\n`;
                         } catch (error) {
-                            console.log(`  Could not copy file ${srcfilename} to ${dstfilename}`);
+                            logElement.textContent +=`  Could not copy file ${srcfilename} to ${dstfilename}\n`;
                         }
                     } else {
                         newMaterials.push(mat);
@@ -432,12 +438,12 @@ class MaterialList {
                     courseId: dstCourseId,
                     resource: newMaterial
                 });
-                console.log(`Copied material "${srcMaterial.title}" to destination.`);
+                logElement.textContent +=`Copied material "${srcMaterial.title}" to destination.\n`;
             } catch (error) {
-                console.log(`Could not copy material "${srcMaterial.title}" to destination: ${error.message}`);
+                logElement.textContent +=`Could not copy material "${srcMaterial.title}" to destination: ${error.message}\n`;
             }
         }
-
+        logElement.textContent +=`Finished copying!\n`;
     }
     show() {
         console.log("show()");

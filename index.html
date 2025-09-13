@@ -11,8 +11,7 @@
 
   <h1>Snel je classrooms klaarzetten</h1>
   <p class="warning">
-    This page is highly experimental, be carefull, you may mess up your classrooms!<br>
-    Open browser console for progress on copy actions.
+    This page is highly experimental, be carefull, you may mess up your classrooms!
   </p>
   
 
@@ -25,7 +24,6 @@
   <div class="src-and-dst">
 
     <div id="src-container">
-      <button id="copy_button" onclick="handleCopyClick('src-material-container','dst-material-container')">Copy Selection</button>
       <!--Pulldown of source classrooms-->
       <!--Javascript code works with this parent-child structure-->
       <!--class="course-list"-->
@@ -152,9 +150,14 @@
 
   </div>
 
+  <!--Copy button-->
+  <div>
+      <button id="copy_button" onclick="handleCopyClick('src-material-container','dst-material-container')">Copy Selection</button>
+  </div>
+
   <!--Log output-->
   <div class="log">
-    <pre id="content" style="white-space: pre-wrap;"></pre>
+    <pre id="logcontent" style="white-space: pre-wrap;"></pre>
   </div>
 
   <script src="script.js"></script>

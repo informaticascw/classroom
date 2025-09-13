@@ -443,6 +443,11 @@ class MaterialList {
         console.log("show()");
         //console.log(this.materials);
 
+        // store scroll position
+        let scrollY = window.scrollY; 
+        let scrollX = window.scrollX; 
+
+        // find topcilist element in DOM
         let topicListElement = document.querySelector(`${this.selector} .topic-list`)
 
         // remove old topics and materials from DOM
@@ -501,6 +506,9 @@ class MaterialList {
             }
             // add cloned topic to dom
             topicListElement.appendChild(cloneTopicItem);
+
+            // restore scroll position
+            window.scrollTo(scrollX, scrollY);
         }
     }
     selectAllInTopic(topicId, checked) {

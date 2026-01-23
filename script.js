@@ -175,9 +175,9 @@ async function handleCopyClick(srcContainer, dstContainer) {
  *  Classes definitions
  */
 
-const COURSES_PAGE_SIZE = 100; // maximum number of courses
-const TOPICS_PAGE_SIZE = 50; // maximum number of topics per course
-const MATERIALS_PAGE_SIZE = 200; // maximum number of materials per course
+const COURSES_PAGE_SIZE = 1000; // maximum number of courses
+const TOPICS_PAGE_SIZE = 100; // maximum number of topics per course
+const MATERIALS_PAGE_SIZE = 1000; // maximum number of materials per course
 
 
 class CourseList {

@@ -179,6 +179,39 @@ const COURSES_PAGE_SIZE = 1000; // maximum number of courses
 const TOPICS_PAGE_SIZE = 100; // maximum number of topics per course
 const MATERIALS_PAGE_SIZE = 1000; // maximum number of materials per course
 
+// natural, case-insensitive comparator with numeric awareness
+// this functions is used for sorting
+function naturalCompare(left, right) {
+    const tokenize = (value) => (value || '').toLowerCase().match(/\d+|\D+/g) || [];
+    const tokensA = tokenize(left);
+    const tokensB = tokenize(right);
+    const length = Math.max(tokensA.length, tokensB.length);
+
+    for (let i = 0; i < length; i++) {
+        const partA = tokensA[i];
+        const partB = tokensB[i];
+
+        if (partA === undefined) return -1;
+        if (partB === undefined) return 1;
+
+        const numA = partA.match(/^\d+$/) ? parseInt(partA, 10) : null;
+        const numB = partB.match(/^\d+$/) ? parseInt(partB, 10) : null;
+
+        if (numA !== null && numB !== null) {
+            if (numA < numB) return -1;
+            if (numA > numB) return 1;
+        } else if (numA !== null) {
+            return -1;
+        } else if (numB !== null) {
+            return 1;
+        } else {
+            if (partA < partB) return -1;
+            if (partA > partB) return 1;
+        }
+    }
+    return 0;
+}
+
 
 class CourseList {
     constructor(selector) {
@@ -207,6 +240,10 @@ class CourseList {
             console.log(this.courses);
             return;
         }
+
+        // sort courses by name (descending)
+        // when commented, the same order as in google classroom is used
+        // this.courses.sort((a, b) => naturalCompare(b.name, a.name));
 
         return this.courses;
     }
@@ -317,6 +354,22 @@ class MaterialList {
                 }
             }
         }
+
+        // sort materials by topic name, then material title (ascending)
+        // sorting is case insensitive and natural (i.e., "topic 2" comes before "Topic 10")
+        // the google classroom api does not guarantee any specific order
+        this.materials.sort((a, b) => {
+            const topicA = (a.name || '');
+            const topicB = (b.name || '');
+            const topicCompare = naturalCompare(topicA, topicB);
+            if (topicCompare !== 0) return topicCompare;
+
+            const titleA = (a.title || '');
+            const titleB = (b.title || '');
+            const materialCompare = naturalCompare(titleA, titleB);
+            if (materialCompare !== 0) return materialCompare;
+            return 0;
+        });
 
         return this.materials;
     }

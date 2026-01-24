@@ -133,6 +133,21 @@ async function handleSelectCourse(selectObject, container) {
     console.log(`user selected courseId ${courseId}`);
     //console.log(selectObject);
 
+    // update course link
+    let courseContainer = selectObject.closest('.course-list').closest('div[id$="-course-container"]');
+    let courseLink = courseContainer.querySelector('.course-link');
+    if (courseLink) {
+        if (courseId && courseId !== 'kies') {
+            // Convert numeric courseId to base64url format (as used by Google Classroom)
+            let base64Id = btoa(courseId).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            courseLink.href = `https://classroom.google.com/w/${base64Id}/t/all`;
+            courseLink.style.display = 'inline';
+        } else {
+            courseLink.href = 'https://classroom.google.com/';
+            courseLink.style.display = 'none';
+        }
+    }
+
     await materialLists[container].load(courseId);
     materialLists[container].show();
 }

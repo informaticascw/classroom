@@ -76,6 +76,12 @@ function maybeEnableButtons() {
     }
 }
 
+// Declare course and material lists
+let srcCourseList;
+let dstCourseList;
+let srcMaterialList;
+let dstMaterialList;
+
 /**
  *  Sign in the user upon button click.
  */
@@ -88,11 +94,11 @@ function handleAuthClick() {
         document.getElementById('authorize_button').innerText = 'Refresh';
 
         await Promise.all([
-            courseLists["src-course-container"].load(),
-            courseLists["dst-course-container"].load()
+            srcCourseList.load(),
+            dstCourseList.load()
         ]);
-        courseLists["src-course-container"].show();
-        courseLists["dst-course-container"].show();
+        srcCourseList.show();
+        dstCourseList.show();
     };
 
     if (gapi.client.getToken() === null) {
@@ -143,8 +149,9 @@ async function handleSelectCourse(selectObject, container) {
         }
     }
 
-    await materialLists[container].load(courseId);
-    materialLists[container].show();
+    let materialList = container === 'src-material-container' ? srcMaterialList : dstMaterialList;
+    await materialList.load(courseId);
+    materialList.show();
 }
 
 async function handleCheckTopic(selectObject) {
@@ -601,3 +608,11 @@ let materialLists = {
     "src-material-container": new MaterialList('#src-material-container'),
     "dst-material-container": new MaterialList('#dst-material-container')
 }
+
+/* TODO: we only have one src and one dst. 
+so code becomes simpler when we refactor code to work with 
+let srcCourseList = new CourseList('#src-course-container')
+let dstCourseList = new CourseList('#dst-course-container')
+let srcMaterialList = new MaterialList('#src-material-container')
+let dstMaterialList = new MaterialList('#dst-material-container')
+*/

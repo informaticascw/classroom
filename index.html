@@ -11,7 +11,7 @@
 <body>
 
   <div class="header">
-    <h1>Snel je classrooms klaarzetten</h1>
+    <h1>Snel lesmateriaal in classrooms klaarzetten</h1>
     <p class="warning">
       This page is experimental, use at your own risk.
     </p>
@@ -19,8 +19,8 @@
 
   <!--Add buttons to initiate auth sequence and sign out-->
   <div class="signin">
-    <button id="authorize_button" onclick="handleAuthClick()">Authorize</button>
-    <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
+    <button id="authorize_button" onclick="handleAuthClick()">Log in</button>
+    <button id="signout_button" onclick="handleSignoutClick()">Log uit</button>
   </div>
 
   <div class="src-and-dst">
@@ -35,7 +35,7 @@
         <label>Bron:
           <select class="course-list" onchange="handleSelectCourse(this)">
             <option class="course-item" value="kies">
-              <span class="course-name">Authorize om classrooms te laden</span>
+              <span class="course-name">Log in om classrooms te laden</span>
               <span class="course-id" hidden></span>
             </option>
             <template class="course-item-template">
@@ -102,7 +102,7 @@
         <label>Bestemming:
           <select class="course-list" onchange="handleSelectCourse(this)">
             <option class="course-item">
-              <span class="course-name">Authorize om classrooms te laden</span>
+              <span class="course-name">Log in om classrooms te laden</span>
               <span class="course-id" hidden></span>
             </option>
             <template class="course-item-template">
@@ -157,12 +157,13 @@
   </div>
 
   <!--Copy button-->
-  <div>
-    <button id="copy_button" onclick="handleCopyClick()">Copy Selection</button>
+  <div class="copy">
+    <button id="copy_button" onclick="handleCopyClick()">Kopieer</button>
   </div>
 
   <!--Log output-->
   <div class="log" id="logcontainer">
+    Voortgang van kopieren (hou deze pagina open tot `Finished copying!` verschijnt):
     <pre id="logcontent" style="white-space: pre-wrap;"></pre>
   </div>
 

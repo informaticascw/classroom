@@ -17,21 +17,21 @@ ul.material-list {
 
 .src-and-dst {
   width: 100%;
-  overflow: hidden; /* includes floats in height */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 #src-container {
-  float: left;
-  width: calc(50% - 30px);
-  margin-right: 10px;
+  flex: 1;
+  min-width: 400px;
   padding: 10px;
   background-color: lightgrey;
 }
 
 #dst-container {
-  float:right;
-  width: calc(50% - 30px);
-  margin-left:10px;
+  flex: 1;
+  min-width: 400px;
   padding: 10px;
   background-color: lightgrey;
 }
@@ -47,7 +47,7 @@ ul.material-list {
 }
 
 .log {
-  width:c alc(100% -20px);
+  width: calc(100% - 20px);
   border: 1px solid black;
   padding: 10px;
   overflow-y: auto;

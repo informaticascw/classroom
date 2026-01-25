@@ -185,9 +185,9 @@ async function handleCopyClick(srcContainer, dstContainer) {
  *  Classes definitions
  */
 
-const COURSES_PAGE_SIZE = 1000; // maximum number of courses
-const TOPICS_PAGE_SIZE = 100; // maximum number of topics per course
-const MATERIALS_PAGE_SIZE = 1000; // maximum number of materials per course
+const COURSES_PAGE_SIZE = 1000; // maximum number of courses per page
+const TOPICS_PAGE_SIZE = 1000; // maximum number of topics per course per page
+const MATERIALS_PAGE_SIZE = 1000; // maximum number of materials per course per page
 
 // locale-stable, case-insensitive, numeric-aware comparator
 const naturalCompare = new Intl.Collator('nl', { numeric: true, sensitivity: 'base' }).compare;
@@ -200,31 +200,24 @@ class CourseList {
     }
     // method to load materials in course
     async load() {
-        // retrieve courses from gapi
-        let promise;
+        let allCourses = [];
+        let pageToken;
         try {
-            promise = gapi.client.classroom.courses.list({
-                pageSize: COURSES_PAGE_SIZE,
-            });
+            do {
+                const response = await gapi.client.classroom.courses.list({
+                    pageSize: COURSES_PAGE_SIZE,
+                    pageToken,
+                });
+                const page = response.result.courses || [];
+                allCourses = allCourses.concat(page);
+                pageToken = response.result.nextPageToken;
+            } while (pageToken);
         } catch (error) {
             console.log(error.message);
             return;
         }
-        let response = await promise;
 
-        // store retreived courses in memory
-        try {
-            this.courses = response.result.courses.filter(course => course.courseState === "ACTIVE");
-        } catch (error) {
-            console.log(error.message);
-            console.log(this.courses);
-            return;
-        }
-
-        // sort courses by name (descending)
-        // when commented, the same order as in google classroom is used
-        // this.courses.sort((a, b) => naturalCompare(b.name, a.name));
-
+        this.courses = allCourses.filter(course => course.courseState === "ACTIVE");
         return this.courses;
     }
     show() {
@@ -264,73 +257,63 @@ class MaterialList {
 
     async load(courseId) {
         this.courseId = courseId;
-        // retrieve materiallist from gapi
-        let materialPromise;
+        let allMaterials = [];
+        let allTopics = [];
+        let pageToken;
+
+        // retrieve all material pages from gapi
         try {
-            materialPromise = gapi.client.classroom.courses.courseWorkMaterials.list({
-                courseId: `${courseId}`,
-                courseWorkMaterialStates: ["DRAFT", "PUBLISHED"],
-                pageSize: MATERIALS_PAGE_SIZE,
-            });
+            do {
+                const response = await gapi.client.classroom.courses.courseWorkMaterials.list({
+                    courseId: `${courseId}`,
+                    courseWorkMaterialStates: ["DRAFT", "PUBLISHED"],
+                    pageSize: MATERIALS_PAGE_SIZE,
+                    pageToken,
+                });
+                const page = response.result.courseWorkMaterial || [];
+                allMaterials = allMaterials.concat(page);
+                pageToken = response.result.nextPageToken;
+            } while (pageToken);
         } catch (error) {
             console.log(error.message);
             return;
         }
 
-        // retrieve topics from gapi
-        let topicPromise;
+        pageToken = undefined;
+        // retrieve all topic pages from gapi
         try {
-            topicPromise = gapi.client.classroom.courses.topics.list({
-                courseId: `${courseId}`,
-                pageSize: TOPICS_PAGE_SIZE,
-            });
+            do {
+                const response = await gapi.client.classroom.courses.topics.list({
+                    courseId: `${courseId}`,
+                    pageSize: TOPICS_PAGE_SIZE,
+                    pageToken,
+                });
+                const page = response.result.topic || [];
+                allTopics = allTopics.concat(page);
+                pageToken = response.result.nextPageToken;
+            } while (pageToken);
         } catch (error) {
             console.log(error.message);
             return;
         }
 
-        // wait until data is retrieved
-        let materialResponse = await materialPromise;
-        let topicResponse = await topicPromise;
-
-        // copy retrieved materials to class
-        try {
-            this.materials = materialResponse.result.courseWorkMaterial
-            console.log(this.materials);
-        } catch (error) {
-            console.log(error.message);
-            console.log(materialResponse);
-            return;
-        }
-
-        // copy retrieved topics to temp variable
-        let topics = undefined;
-        try {
-            topics = topicResponse.result.topic
-        } catch (error) {
-            console.log(error.message);
-            console.log(topicResponse);
-            return;
-        }
+        this.materials = allMaterials;
+        const topics = allTopics;
 
         // add corresponding topic to each material
-        if (topics ? topics.length > 0 : false) {
-            if (this.materials ? this.materials.length > 0 : false) {
-                for (let [index, material] of this.materials.entries()) {
-                    this.materials[index] = Object.assign({},
-                        topics.find(topic => topic.topicId === material.topicId),
-                        material);
-                }
+        if (topics?.length > 0 && this.materials?.length > 0) {
+            for (let [index, material] of this.materials.entries()) {
+                this.materials[index] = Object.assign({},
+                    topics.find(topic => topic.topicId === material.topicId),
+                    material);
             }
         }
 
         // add topics that have no materials as empty materials with topic
-        if (topics ? topics.length > 0 : false) {
+        if (topics?.length > 0 && this.materials) {
             for (let topic of topics) {
-                if (this.materials) {
-                    if (!this.materials.find(material => material.topicId === topic.topicId)) {
-                        this.materials.push(topic);
-                    }
+                if (!this.materials.find(material => material.topicId === topic.topicId)) {
+                    this.materials.push(topic);
                 }
             }
         }

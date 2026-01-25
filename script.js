@@ -87,16 +87,11 @@ function handleAuthClick() {
         document.getElementById('signout_button').style.visibility = 'visible';
         document.getElementById('authorize_button').innerText = 'Refresh';
 
-        // this should be asynchronous, but it looks like gapi completes requests one by one
-        let srcPromise = courseLists["src-course-container"].load();
-        console.log("load src-courses done");
-        let dstPromise = courseLists["dst-course-container"].load();
-        console.log("load dst-courses done");
-        await srcPromise;
-        console.log("await promise src-courses done")
+        await Promise.all([
+            courseLists["src-course-container"].load(),
+            courseLists["dst-course-container"].load()
+        ]);
         courseLists["src-course-container"].show();
-        await dstPromise;
-        console.log("await promise dst-courses done")
         courseLists["dst-course-container"].show();
     };
 

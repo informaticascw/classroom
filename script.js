@@ -394,8 +394,12 @@ class MaterialList {
         // log element in DOM
         let logElement = document.querySelector(`#logcontent`)
         let logContainer = document.querySelector(`#logcontainer`)
+        const appendLog = (message) => {
+            logElement.textContent += message;
+            logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+        };
         logElement.textContent =`Start copying!\n`;
-        logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+        appendLog('');
 
         // Load destination topics
         let dstTopicsResponse = await gapi.client.classroom.courses.topics.list({
@@ -424,8 +428,7 @@ class MaterialList {
         for (let topic of selectedTopics.slice().reverse()) { // slice makes a copy of the array, reverse to keep original order afte copying]
             let existingDstTopic = dstTopics.find(dstTopic => dstTopic.name === topic.name);
             if (existingDstTopic) {
-                logElement.textContent +=`No need to copy topic "${topic.name}", topic already exists in destination, using existing topic.\n`;
-                logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                appendLog(`No need to copy topic "${topic.name}", topic already exists in destination, using existing topic.\n`);
                 topicNameToIdMap[topic.name] = existingDstTopic.topicId;
             } else {
                 try {
@@ -434,11 +437,9 @@ class MaterialList {
                         resource: { name: topic.name }
                     });
                     topicNameToIdMap[topic.name] = topicCreateResponse.result.topicId;
-                    logElement.textContent +=`Copied topic "${topic.name}" to destination.\n`;
-                    logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                    appendLog(`Copied topic "${topic.name}" to destination.\n`);
                 } catch (error) {
-                    logElement.textContent +=`Could not copy topic "${topic.name}" to destination: ${error.message}\n`;
-                    logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                    appendLog(`Could not copy topic "${topic.name}" to destination: ${error.message}\n`);
                 }
             }
         }
@@ -490,11 +491,9 @@ class MaterialList {
                                     }
                                 }
                             });
-                            logElement.textContent +=`  Copied file ${srcfilename} to ${dstfilename}\n`;
-                            logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                            appendLog(`  Copied file ${srcfilename} to ${dstfilename}\n`);
                         } catch (error) {
-                            logElement.textContent +=`  Could not copy file ${srcfilename} to ${dstfilename}\n`;
-                            logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                            appendLog(`  Could not copy file ${srcfilename} to ${dstfilename}\n`);
                         }
                     } else {
                         newMaterials.push(mat);
@@ -515,15 +514,12 @@ class MaterialList {
                     courseId: dstCourseId,
                     resource: newMaterial
                 });
-                logElement.textContent +=`Copied material "${srcMaterial.title}" to destination.\n`;
-                logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                appendLog(`Copied material "${srcMaterial.title}" to destination.\n`);
             } catch (error) {
-                logElement.textContent +=`Could not copy material "${srcMaterial.title}" to destination: ${error.message}\n`;
-                logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                appendLog(`Could not copy material "${srcMaterial.title}" to destination: ${error.message}\n`);
             }
         }
-        logElement.textContent +=`Finished copying!\n`;
-        logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+        appendLog(`Finished copying!\n`);
     }
     show() {
         console.log("show()");

@@ -129,7 +129,7 @@ function handleSignoutClick() {
  * Handles for user interaction
  */
 
-async function handleSelectCourse(selectObject, container) {
+async function handleSelectCourse(selectObject) {
     let courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
     //console.log(selectObject);
@@ -149,7 +149,9 @@ async function handleSelectCourse(selectObject, container) {
         }
     }
 
-    let materialList = container === 'src-material-container' ? srcMaterialList : dstMaterialList;
+    // Determine which material list based on container ID
+    let containerId = courseContainer.id;
+    let materialList = containerId === 'src-course-container' ? srcMaterialList : dstMaterialList;
     await materialList.load(courseId);
     materialList.show();
 }
@@ -179,7 +181,7 @@ async function handleCheckMaterial(selectObject) {
     srcMaterialList.show();
 }
 
-async function handleCopyClick(srcContainer, dstContainer) {
+async function handleCopyClick() {
     console.log("start copying");
     await srcMaterialList.copySelection(dstMaterialList.courseId);
     console.log("start reloading dstContainer");

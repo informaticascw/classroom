@@ -32,7 +32,7 @@
       <!--  class="course-item"-->
       <div id="src-course-container">
         <label>Bron:
-          <select class="course-list" onchange="handleSelectCourse(this, 'src-material-container')">
+          <select class="course-list" onchange="handleSelectCourse(this)">
             <option class="course-item" value="kies">
               <span class="course-name">Authorize om classrooms te laden</span>
               <span class="course-id" hidden></span>
@@ -98,7 +98,7 @@
       <!--  class="course-item"-->
       <div id="dst-course-container">
         <label>Bestemming:
-          <select class="course-list" onchange="handleSelectCourse(this, 'dst-material-container')">
+          <select class="course-list" onchange="handleSelectCourse(this)">
             <option class="course-item">
               <span class="course-name">Authorize om classrooms te laden</span>
               <span class="course-id" hidden></span>
@@ -155,7 +155,7 @@
 
   <!--Copy button-->
   <div>
-      <button id="copy_button" onclick="handleCopyClick('src-material-container','dst-material-container')">Copy Selection</button>
+      <button id="copy_button" onclick="handleCopyClick()">Copy Selection</button>
   </div>
 
   <!--Log output-->

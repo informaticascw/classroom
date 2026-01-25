@@ -1,5 +1,7 @@
 # Classroom automation
-This is code a website for teachers to copy materials from one google classroom to another. 
+This is code a website for teachers to copy materials from one google classroom to another.
+
+Use freely, but at your own risk.
 
 # How to use this website (for teachers @stanislascollege.net)
 Go to the website\

@@ -161,10 +161,10 @@ async function handleCheckTopic(selectObject) {
     let topicChecked = false;
     if (topicItem.querySelector('.topic-input:checked')) { topicChecked = true };
 
-    materialLists["src-material-container"].selectAllInTopic(topicId, topicChecked);
+    srcMaterialList.selectAllInTopic(topicId, topicChecked);
 
     // adjust DOM of srcMaterials
-    materialLists["src-material-container"].show();
+    srcMaterialList.show();
 }
 
 async function handleCheckMaterial(selectObject) {
@@ -175,17 +175,17 @@ async function handleCheckMaterial(selectObject) {
     if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
 
     // update source material and dom
-    materialLists["src-material-container"].select(materialId, materialChecked);
-    materialLists["src-material-container"].show();
+    srcMaterialList.select(materialId, materialChecked);
+    srcMaterialList.show();
 }
 
 async function handleCopyClick(srcContainer, dstContainer) {
     console.log("start copying");
-    await materialLists[srcContainer].copySelection(materialLists[dstContainer].courseId);
+    await srcMaterialList.copySelection(dstMaterialList.courseId);
     console.log("start reloading dstContainer");
-    await materialLists[dstContainer].load(materialLists[dstContainer].courseId);
+    await dstMaterialList.load(dstMaterialList.courseId);
     console.log("start showing dstContainer");
-    materialLists[dstContainer].show();
+    dstMaterialList.show();
 }
 
 /**
@@ -395,7 +395,7 @@ class MaterialList {
         // Find or create "Classroom" folder in Drive
         let classroomFolderId = await findOrCreateFolder('Classroom', null);
         // Find or create folder for this destination classroom
-        let dstCourse = courseLists["dst-course-container"].courses.find(c => c.id === dstCourseId);
+        let dstCourse = dstCourseList.courses.find(c => c.id === dstCourseId);
         let dstCourseName = dstCourse ? dstCourse.name : `Classroom ${dstCourseId}`;
         let dstClassroomFolderId = await findOrCreateFolder(dstCourseName, classroomFolderId);
 
@@ -599,20 +599,7 @@ async function findOrCreateFolder(folderName, parentId) {
  *  Objects of classes (global)
  */
 
-let courseLists = {
-    "src-course-container": new CourseList('#src-course-container'),
-    "dst-course-container": new CourseList('#dst-course-container')
-}
-
-let materialLists = {
-    "src-material-container": new MaterialList('#src-material-container'),
-    "dst-material-container": new MaterialList('#dst-material-container')
-}
-
-/* TODO: we only have one src and one dst. 
-so code becomes simpler when we refactor code to work with 
-let srcCourseList = new CourseList('#src-course-container')
-let dstCourseList = new CourseList('#dst-course-container')
-let srcMaterialList = new MaterialList('#src-material-container')
-let dstMaterialList = new MaterialList('#dst-material-container')
-*/
+srcCourseList = new CourseList('#src-course-container');
+dstCourseList = new CourseList('#dst-course-container');
+srcMaterialList = new MaterialList('#src-material-container');
+dstMaterialList = new MaterialList('#dst-material-container');

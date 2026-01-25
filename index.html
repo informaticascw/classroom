@@ -10,10 +10,12 @@
 
 <body>
 
-  <h1>Snel je classrooms klaarzetten</h1>
-  <p class="warning">
-    This page is experimental, use without guarantees, it might mess up your classrooms!
-  </p>
+  <div class="header">
+    <h1>Snel je classrooms klaarzetten</h1>
+    <p class="warning">
+      This page is experimental, use without guarantees, it might mess up your classrooms!
+    </p>
+  </div>
 
   <!--Add buttons to initiate auth sequence and sign out-->
   <div class="signin">
@@ -46,7 +48,8 @@
             <!--- more course-items will be cloned here -->
           </select>
         </label>
-        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer" style="display: none;">Bekijk classroom</a>
+        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
+          style="display: none;">Bekijk classroom</a>
       </div>
 
       <!--List of materials grouped by topic-->
@@ -112,7 +115,8 @@
             <!--- more course-items will be cloned here -->
           </select>
         </label>
-        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer" style="display: none;">Bekijk classroom</a>
+        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
+          style="display: none;">Bekijk classroom</a>
       </div>
 
 
@@ -154,19 +158,20 @@
 
   <!--Copy button-->
   <div>
-      <button id="copy_button" onclick="handleCopyClick()">Copy Selection</button>
+    <button id="copy_button" onclick="handleCopyClick()">Copy Selection</button>
   </div>
 
   <!--Log output-->
   <div class="log" id="logcontainer">
     <pre id="logcontent" style="white-space: pre-wrap;"></pre>
   </div>
-  
+
   <footer class="footer">
     <hr>
     <a href="https://github.com/informaticascw/classroom" target="_blank" rel="noopener noreferrer">Source code</a>
     | <a href="LICENSE" target="_blank" rel="noopener noreferrer">License</a>
-    | <a href="https://dashboard.simpleanalytics.com/stanislas.informatica.nu" target="_blank" rel="noopener noreferrer">Usage statistics</a>
+    | <a href="https://dashboard.simpleanalytics.com/stanislas.informatica.nu" target="_blank"
+      rel="noopener noreferrer">Usage statistics</a>
   </footer>
 
   <script src="script.js"></script>

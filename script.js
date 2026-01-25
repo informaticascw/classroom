@@ -1,30 +1,14 @@
-/* exported gapiLoaded */
-/* exported gisLoaded */
-/* exported handleAuthClick */
-/* exported handleSignoutClick */
-
-// TODO(developer): Set to client ID and API key from the Developer Console
-// only classroom
+// TODO(developer): Set to client ID and API key from the Developer Console (https://console.cloud.google.com/apis/credentials)
 const CLIENT_ID = '700908545505-6p39r6fvlj9l2mgs92f2q0s4rq9ubtv7.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyA7mTKuemz9MEZ5NChYKMjf4FnnrzimgYA';
-// 2 with drive
-// const CLIENT_ID = '229885589899-19danounelet921mre73jpbhv3hn05tj.apps.googleusercontent.com';
-// const API_KEY = 'AIzaSyAd8vDtDSSdEN5-2NjutBvdsDkHa-SZntI';
 
-// Discovery doc URL for APIs used by the quickstart
-//const DISCOVERY_DOCS = [
-//    'https://classroom.googleapis.com/$discovery/rest',
-//    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-//];
-//const DISCOVERY_DOCS = ['https://classroom.googleapis.com/$discovery/rest']
+// Discovery doc URL for APIs
 const DISCOVERY_DOCS = [
     'https://classroom.googleapis.com/$discovery/rest',
     'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
 ];
 
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-// const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive.file';
+// Authorization scopes required by the API; 
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
 
 let tokenClient;

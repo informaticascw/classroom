@@ -14,7 +14,7 @@ Features:
 - select material per topic or individually
 - automatically sort of material (this is the best I can do, as google doesn't disclose any ordering information through it API)
 - all attachments in material are copied (not linked), the classname is added to each copied filename
-- all material copied has status `concept`, it will be visible to students after you `poste` the material
+- all material copied has status `concept`, it will be visible to students after you `post` the material
 
 # How to make this website for teachers @another.school
 Technical knownledge is required to make this available for another school.

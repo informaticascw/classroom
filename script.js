@@ -27,172 +27,158 @@ const DISCOVERY_DOCS = [
 // const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive.file';
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
 
-/**
- * Application state and handlers
- */
-class AppState {
-    constructor() {
-        this.tokenClient = null;
-        this.gapiInited = false;
-        this.gisInited = false;
-        this.courseLists = {
-            "src-course-container": new CourseList('#src-course-container'),
-            "dst-course-container": new CourseList('#dst-course-container')
-        };
-        this.materialLists = {
-            "src-material-container": new MaterialList('#src-material-container'),
-            "dst-material-container": new MaterialList('#dst-material-container')
-        };
-        this.initButtons();
-    }
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
 
-    initButtons() {
-        document.getElementById('authorize_button').style.visibility = 'hidden';
+document.getElementById('authorize_button').style.visibility = 'hidden';
+document.getElementById('signout_button').style.visibility = 'hidden';
+
+/**
+ * Callback after api.js is loaded.
+ */
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
+}
+
+/**
+ * Callback after the API client is loaded. Loads the
+ * discovery doc to initialize the API.
+ */
+async function initializeGapiClient() {
+    await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: DISCOVERY_DOCS,
+    });
+    gapiInited = true; 
+    maybeEnableButtons();
+}
+
+/**
+ * Callback after Google Identity Services are loaded.
+ */
+function gisLoaded() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: '', // defined later
+    });
+    gisInited = true;
+    maybeEnableButtons();
+}
+
+/**
+ * Enables user interaction after all libraries are loaded.
+ */
+function maybeEnableButtons() {
+    if (gapiInited && gisInited) {
+        document.getElementById('authorize_button').style.visibility = 'visible';
+    }
+}
+
+/**
+ *  Sign in the user upon button click.
+ */
+function handleAuthClick() {
+    tokenClient.callback = async (resp) => {
+        if (resp.error !== undefined) {
+            throw (resp);
+        }
+        document.getElementById('signout_button').style.visibility = 'visible';
+        document.getElementById('authorize_button').innerText = 'Refresh';
+
+        await Promise.all([
+            courseLists["src-course-container"].load(),
+            courseLists["dst-course-container"].load()
+        ]);
+        courseLists["src-course-container"].show();
+        courseLists["dst-course-container"].show();
+    };
+
+    if (gapi.client.getToken() === null) {
+        // Prompt the user to select a Google Account and ask for consent to share their data
+        // when establishing a new session.
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    } else {
+        // Skip display of account chooser and consent dialog for an existing session.
+        tokenClient.requestAccessToken({ prompt: '' });
+    }
+}
+
+/**
+ *  Sign out the user upon button click.
+ */
+function handleSignoutClick() {
+    const token = gapi.client.getToken();
+    if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken('');
+        document.getElementById('content').innerText = '';
+        document.getElementById('authorize_button').innerText = 'Authorize';
         document.getElementById('signout_button').style.visibility = 'hidden';
     }
+}
 
-    gapiLoaded() {
-        gapi.load('client', () => this.initializeGapiClient());
-    }
+/**
+ * Handles for user interaction
+ */
 
-    async initializeGapiClient() {
-        await gapi.client.init({
-            apiKey: API_KEY,
-            discoveryDocs: DISCOVERY_DOCS,
-        });
-        this.gapiInited = true;
-        this.maybeEnableButtons();
-    }
+async function handleSelectCourse(selectObject, container) {
+    let courseId = selectObject.value;
+    console.log(`user selected courseId ${courseId}`);
+    //console.log(selectObject);
 
-    gisLoaded() {
-        this.tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: '',
-        });
-        this.gisInited = true;
-        this.maybeEnableButtons();
-    }
-
-    maybeEnableButtons() {
-        if (this.gapiInited && this.gisInited) {
-            document.getElementById('authorize_button').style.visibility = 'visible';
-        }
-    }
-
-    handleAuthClick() {
-        this.tokenClient.callback = async (resp) => {
-            if (resp.error !== undefined) {
-                throw (resp);
-            }
-            document.getElementById('signout_button').style.visibility = 'visible';
-            document.getElementById('authorize_button').innerText = 'Refresh';
-
-            await Promise.all([
-                this.courseLists["src-course-container"].load(),
-                this.courseLists["dst-course-container"].load()
-            ]);
-            this.courseLists["src-course-container"].show();
-            this.courseLists["dst-course-container"].show();
-        };
-
-        if (gapi.client.getToken() === null) {
-            this.tokenClient.requestAccessToken({ prompt: 'consent' });
+    // update course link
+    let courseContainer = selectObject.closest('.course-list').closest('div[id$="-course-container"]');
+    let courseLink = courseContainer.querySelector('.course-link');
+    if (courseLink) {
+        if (courseId && courseId !== 'kies') {
+            // Convert numeric courseId to base64url format (as used by Google Classroom)
+            let base64Id = btoa(courseId).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            courseLink.href = `https://classroom.google.com/w/${base64Id}/t/all`;
+            courseLink.style.display = 'inline';
         } else {
-            this.tokenClient.requestAccessToken({ prompt: '' });
+            courseLink.href = 'https://classroom.google.com/';
+            courseLink.style.display = 'none';
         }
     }
 
-    handleSignoutClick() {
-        const token = gapi.client.getToken();
-        if (token !== null) {
-            google.accounts.oauth2.revoke(token.access_token);
-            gapi.client.setToken('');
-            document.getElementById('content').innerText = '';
-            document.getElementById('authorize_button').innerText = 'Authorize';
-            document.getElementById('signout_button').style.visibility = 'hidden';
-        }
-    }
-
-    handleSelectCourse(selectObject, container) {
-        let courseId = selectObject.value;
-        console.log(`user selected courseId ${courseId}`);
-
-        let courseContainer = selectObject.closest('.course-list').closest('div[id$="-course-container"]');
-        let courseLink = courseContainer.querySelector('.course-link');
-        if (courseLink) {
-            if (courseId && courseId !== 'kies') {
-                let base64Id = btoa(courseId).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-                courseLink.href = `https://classroom.google.com/w/${base64Id}/t/all`;
-                courseLink.style.display = 'inline';
-            } else {
-                courseLink.href = 'https://classroom.google.com/';
-                courseLink.style.display = 'none';
-            }
-        }
-
-        this.materialLists[container].load(courseId).then(() => this.materialLists[container].show());
-    }
-
-    handleCheckTopic(selectObject) {
-        let topicItem = selectObject.closest('.topic-item');
-        let topicId = topicItem.querySelector('.topic-id').textContent;
-        let topicChecked = Boolean(topicItem.querySelector('.topic-input:checked'));
-        this.materialLists["src-material-container"].selectAllInTopic(topicId, topicChecked);
-        this.materialLists["src-material-container"].show();
-    }
-
-    handleCheckMaterial(selectObject) {
-        let materialItem = selectObject.closest('.material-item');
-        let materialId = materialItem.querySelector('.material-id').textContent;
-        let materialChecked = Boolean(materialItem.querySelector('.material-input:checked'));
-        this.materialLists["src-material-container"].select(materialId, materialChecked);
-        this.materialLists["src-material-container"].show();
-    }
-
-    async handleCopyClick(srcContainer, dstContainer) {
-        console.log("start copying");
-        await this.materialLists[srcContainer].copySelection(this.materialLists[dstContainer].courseId);
-        console.log("start reloading dstContainer");
-        await this.materialLists[dstContainer].load(this.materialLists[dstContainer].courseId);
-        console.log("start showing dstContainer");
-        this.materialLists[dstContainer].show();
-    }
+    await materialLists[container].load(courseId);
+    materialLists[container].show();
 }
 
-const app = new AppState();
+async function handleCheckTopic(selectObject) {
+    // check/uncheck all materials in topic
+    let topicItem = selectObject.closest('.topic-item');
+    let topicId = topicItem.querySelector('.topic-id').textContent;
+    let topicChecked = false;
+    if (topicItem.querySelector('.topic-input:checked')) { topicChecked = true };
 
-/* Global handler functions for onclick attributes */
-function gapiLoaded() {
-    app.gapiLoaded();
+    materialLists["src-material-container"].selectAllInTopic(topicId, topicChecked);
+
+    // adjust DOM of srcMaterials
+    materialLists["src-material-container"].show();
 }
 
-function gisLoaded() {
-    app.gisLoaded();
+async function handleCheckMaterial(selectObject) {
+    // check/uncheck material
+    let materialItem = selectObject.closest('.material-item');
+    let materialId = materialItem.querySelector('.material-id').textContent;
+    let materialChecked = false;
+    if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
+
+    // update source material and dom
+    materialLists["src-material-container"].select(materialId, materialChecked);
+    materialLists["src-material-container"].show();
 }
 
-function handleAuthClick() {
-    app.handleAuthClick();
-}
-
-function handleSignoutClick() {
-    app.handleSignoutClick();
-}
-
-function handleSelectCourse(selectObject, container) {
-    app.handleSelectCourse(selectObject, container);
-}
-
-function handleCheckTopic(selectObject) {
-    app.handleCheckTopic(selectObject);
-}
-
-function handleCheckMaterial(selectObject) {
-    app.handleCheckMaterial(selectObject);
-}
-
-function handleCopyClick(srcContainer, dstContainer) {
-    app.handleCopyClick(srcContainer, dstContainer);
+async function handleCopyClick(srcContainer, dstContainer) {
+    console.log("start copying");
+    await materialLists[srcContainer].copySelection(materialLists[dstContainer].courseId);
+    console.log("start reloading dstContainer");
+    await materialLists[dstContainer].load(materialLists[dstContainer].courseId);
+    console.log("start showing dstContainer");
+    materialLists[dstContainer].show();
 }
 
 /**
@@ -602,4 +588,16 @@ async function findOrCreateFolder(folderName, parentId) {
     return createResponse.result.id;
 }
 
+/**
+ *  Objects of classes (global)
+ */
 
+let courseLists = {
+    "src-course-container": new CourseList('#src-course-container'),
+    "dst-course-container": new CourseList('#dst-course-container')
+}
+
+let materialLists = {
+    "src-material-container": new MaterialList('#src-material-container'),
+    "dst-material-container": new MaterialList('#dst-material-container')
+}

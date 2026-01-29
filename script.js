@@ -386,7 +386,7 @@ class MaterialList {
         let dstClassroomFolderId = await findOrCreateFolder(dstCourseName, classroomFolderId);
 
         // Extract class name from dstCourseName (between first and second '|')
-        let className = "copy";
+        let className = null;
         if (dstCourseName) {
             let parts = dstCourseName.split('|');
             if (parts.length > 2) {
@@ -402,13 +402,16 @@ class MaterialList {
                     if (mat.driveFile && mat.driveFile.driveFile) {
                         let fileId = mat.driveFile.driveFile.id;
                         let srcfilename = mat.driveFile.driveFile.title ? mat.driveFile.driveFile.title : "Unnamed";
-                        // splits naam in basis + extensie
-                        let dotIndex = srcfilename.lastIndexOf(".");
-                        let basename = dotIndex > -1 ? srcfilename.substring(0, dotIndex) : srcfilename;
-                        let extension = dotIndex > -1 ? srcfilename.substring(dotIndex) : "";
-                        // voeg className vóór de extensie toe
-                        let dstfilename = `${basename} (${className})${extension}`;
-
+                        if (className === null) {
+                            let dstfilename = srcfilename;
+                        else {
+                            // splits naam in basis + extensie
+                            let dotIndex = srcfilename.lastIndexOf(".");
+                            let basename = dotIndex > -1 ? srcfilename.substring(0, dotIndex) : srcfilename;
+                            let extension = dotIndex > -1 ? srcfilename.substring(dotIndex) : "";
+                            // voeg className vóór de extensie toe
+                            let dstfilename = `${basename} (${className})${extension}`;
+                        }
                         try {
                             let fileCopyResponse = await gapi.client.drive.files.copy({
                                 fileId: fileId,
@@ -425,9 +428,9 @@ class MaterialList {
                                     }
                                 }
                             });
-                            appendLog(`  Copied file ${srcfilename} to ${dstfilename}\n`);
+                            appendLog(`  Copied file "${srcfilename}" to "${dstfilename}"\n`);
                         } catch (error) {
-                            appendLog(`  Could not copy file ${srcfilename} to ${dstfilename}\n`);
+                            appendLog(`  Could not copy file "${srcfilename}" to "${dstfilename}"\n`);
                         }
                     } else {
                         newMaterials.push(mat);

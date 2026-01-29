@@ -402,10 +402,8 @@ class MaterialList {
                     if (mat.driveFile && mat.driveFile.driveFile) {
                         let fileId = mat.driveFile.driveFile.id;
                         let srcfilename = mat.driveFile.driveFile.title ? mat.driveFile.driveFile.title : "Unnamed";
-                        if (className === null) {
-                            let dstfilename = srcfilename;
-                        }
-                        else {
+                        let let dstfilename = srcfilename;
+                        if (className || className === "") {
                             // splits naam in basis + extensie
                             let dotIndex = srcfilename.lastIndexOf(".");
                             let basename = dotIndex > -1 ? srcfilename.substring(0, dotIndex) : srcfilename;

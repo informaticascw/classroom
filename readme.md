@@ -19,7 +19,11 @@ Features:
 # How to make this website for teachers @another.school
 Technical knownledge is required to make this available for another school.
 
-You need to:
+development:
+- start a Codespace of this repository, or any other development environment
+- add the link to your development host to the 'Authorized JavaScript origins' for your 'OAuth 2.0 Client IDs' at https://console.cloud.google.com/apis/credentials
+
+deployment:
 - Fork or copy this repository,
 - Enable GitHub Pages or use any other static-hosting service to host this page
 - Change API and Oauth keys in index.html (the current ones are limited by google for use at stanislascollege.net)

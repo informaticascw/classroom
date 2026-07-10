@@ -21,7 +21,9 @@ Technical knownledge is required to make this available for another school.
 
 development:
 - start a Codespace of this repository, or any other development environment
+- start a webserver (automaticly started in this Codespace)
 - add the link to your development host to the 'Authorized JavaScript origins' for your 'OAuth 2.0 Client IDs' at https://console.cloud.google.com/apis/credentials
+- open webpage
 
 deployment:
 - Fork or copy this repository,

@@ -9,7 +9,15 @@ const DISCOVERY_DOCS = [
 ];
 
 // Authorization scopes required by the API; 
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.coursework https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
+const REQUIRED_SCOPES = [
+  'https://www.googleapis.com/auth/classroom.courses.readonly',
+  'https://www.googleapis.com/auth/classroom.courseworkmaterials',
+  'https://www.googleapis.com/auth/classroom.coursework.students',
+  'https://www.googleapis.com/auth/classroom.topics',
+  'https://www.googleapis.com/auth/drive',
+];
+
+const SCOPES = REQUIRED_SCOPES.join(' ');
 
 // DOM Selectors
 const SELECTORS = {
@@ -286,8 +294,7 @@ class MaterialList {
                 pageToken = response.result.nextPageToken;
             } while (pageToken);
         } catch (error) {
-            console.log(error.message);
-            return;
+            console.error(`Could not load materials for course ${courseId}:`, error);
         }
 
         pageToken = undefined;
@@ -305,8 +312,7 @@ class MaterialList {
                 pageToken = response.result.nextPageToken;
             } while (pageToken);
         } catch (error) {
-            console.log(error.message);
-            return;
+            console.error(`Could not load assignments for course ${courseId}:`, error);
         }
 
         pageToken = undefined;
@@ -323,8 +329,7 @@ class MaterialList {
                 pageToken = response.result.nextPageToken;
             } while (pageToken);
         } catch (error) {
-            console.log(error.message);
-            return;
+            console.error(`Could not load topics for course ${courseId}:`, error);
         }
 
         // Mark assignments with a type property to differentiate them

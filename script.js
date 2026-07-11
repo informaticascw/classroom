@@ -195,6 +195,16 @@ async function handleCheckMaterial(selectObject) {
     AppState.srcMaterialList.show();
 }
 
+function handleToggleTopic(toggleButton) {
+    let topicItem = toggleButton.closest('.topic-item');
+    let topicId = topicItem.querySelector('.topic-id').textContent;
+    let topicContainer = topicItem.closest('div[id$="-material-container"]');
+    let materialList = topicContainer.id === 'src-material-container' ? AppState.srcMaterialList : AppState.dstMaterialList;
+
+    materialList.toggleTopic(topicId);
+    materialList.show();
+}
+
 function syncSettingsFromUI() {
     AppState.settings.publishAsDraft = document.querySelector(SELECTORS.SETTING_DRAFT)?.checked ?? true;
     AppState.settings.addClassNameToFileName = document.querySelector(SELECTORS.SETTING_ADD_CLASSNAME)?.checked ?? true;
@@ -284,6 +294,7 @@ class MaterialList {
         this.selector = selector; // css selector
         this.materials = [];
         this.courseId = undefined;
+        this.collapsedTopicIds = new Set();
     }
 
     async load(courseId) {
@@ -384,6 +395,9 @@ class MaterialList {
             if (topicCompare !== 0) return topicCompare;
             return naturalCompare(a.title || '', b.title || '');
         });
+
+        // Start each loaded course with all topics collapsed by default.
+        this.collapsedTopicIds = new Set(this.materials.map(item => item.topicId));
 
         return this.materials;
     }
@@ -586,6 +600,14 @@ class MaterialList {
             let cloneTopicItem = templateTopicItem.content.cloneNode(true);
             cloneTopicItem.querySelector(".topic-id").textContent = `${topic.topicId}`;
             cloneTopicItem.querySelector(".topic-name").textContent = `${topic.name}`;
+            let isCollapsed = this.collapsedTopicIds.has(topic.topicId);
+
+            let cloneToggle = cloneTopicItem.querySelector('.topic-toggle');
+            if (cloneToggle) {
+                cloneToggle.textContent = isCollapsed ? '▸' : '▾';
+                cloneToggle.setAttribute('aria-expanded', (!isCollapsed).toString());
+            }
+
             if (cloneTopicItem.querySelector(".topic-input")) {
                 // set check of topic according to underlying materials
                 let cloneTopicInput = cloneTopicItem.querySelector(".topic-input")
@@ -618,11 +640,21 @@ class MaterialList {
                 }
                 materialListElement.appendChild(cloneMaterialItem);
             }
+
+            materialListElement.style.display = isCollapsed ? 'none' : 'block';
+
             // add cloned topic to dom
             topicListElement.appendChild(cloneTopicItem);
 
             // restore scroll position
             window.scrollTo(scrollX, scrollY);
+        }
+    }
+    toggleTopic(topicId) {
+        if (this.collapsedTopicIds.has(topicId)) {
+            this.collapsedTopicIds.delete(topicId);
+        } else {
+            this.collapsedTopicIds.add(topicId);
         }
     }
     selectAllInTopic(topicId, checked) {

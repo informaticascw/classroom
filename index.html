@@ -67,6 +67,7 @@
         <ul class="topic-list">
           <template class="topic-item-template">
             <li class="topic-item">
+              <button class="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
               <label>
                 <input class="topic-input" type="checkbox" onchange="handleCheckTopic(this)">
                 <span class="topic-name">Topic name</span>
@@ -135,6 +136,7 @@
         <ul class="topic-list">
           <template class="topic-item-template">
             <li class="topic-item">
+              <button class="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
               <span class="topic-name">Topic name</span>
               <span class="topic-id" hidden>xxxxxx</span>
               <ul class="material-list">

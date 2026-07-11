@@ -11,12 +11,34 @@ const DISCOVERY_DOCS = [
 // Authorization scopes required by the API; 
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
 
-let tokenClient;
-let gapiInited = false;
-let gisInited = false;
+// DOM Selectors
+const SELECTORS = {
+    AUTHORIZE_BTN: '#authorize_button',
+    SIGNOUT_BTN: '#signout_button',
+    SRC_COURSE_CONTAINER: '#src-course-container',
+    DST_COURSE_CONTAINER: '#dst-course-container',
+    SRC_MATERIAL_CONTAINER: '#src-material-container',
+    DST_MATERIAL_CONTAINER: '#dst-material-container',
+    LOG_CONTENT: '#logcontent',
+    LOG_CONTAINER: '#logcontainer',
+    TOPIC_LIST: '.topic-list',
+    MATERIAL_LIST: '.material-list',
+    COURSE_LIST: '.course-list'
+};
 
-document.getElementById('authorize_button').style.display = 'none';
-document.getElementById('signout_button').style.display = 'none';
+// Centralized Application State
+const AppState = {
+    srcCourseList: null,
+    dstCourseList: null,
+    srcMaterialList: null,
+    dstMaterialList: null,
+    tokenClient: null,
+    isGapiInited: false,
+    isGisInited: false
+};
+
+document.querySelector(SELECTORS.AUTHORIZE_BTN).style.display = 'none';
+document.querySelector(SELECTORS.SIGNOUT_BTN).style.display = 'none';
 
 /**
  * Callback after api.js is loaded.
@@ -34,7 +56,7 @@ async function initializeGapiClient() {
         apiKey: API_KEY,
         discoveryDocs: DISCOVERY_DOCS,
     });
-    gapiInited = true; 
+    AppState.isGapiInited = true; 
     maybeEnableButtons();
 }
 
@@ -42,12 +64,12 @@ async function initializeGapiClient() {
  * Callback after Google Identity Services are loaded.
  */
 function gisLoaded() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
+    AppState.tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: '', // defined later
     });
-    gisInited = true;
+    AppState.isGisInited = true;
     maybeEnableButtons();
 }
 
@@ -55,43 +77,39 @@ function gisLoaded() {
  * Enables user interaction after all libraries are loaded.
  */
 function maybeEnableButtons() {
-    if (gapiInited && gisInited) {
-        document.getElementById('authorize_button').style.display = 'block';
+    if (AppState.isGapiInited && AppState.isGisInited) {
+        document.querySelector(SELECTORS.AUTHORIZE_BTN).style.display = 'block';
     }
 }
 
-// Declare course and material lists
-let srcCourseList;
-let dstCourseList;
-let srcMaterialList;
-let dstMaterialList;
+// Declare course and material lists - now in AppState
 
 /**
  *  Sign in the user upon button click.
  */
 function handleAuthClick() {
-    tokenClient.callback = async (resp) => {
+    AppState.tokenClient.callback = async (resp) => {
         if (resp.error !== undefined) {
             throw (resp);
         }
-        document.getElementById('authorize_button').style.display = 'none';
-        document.getElementById('signout_button').style.display = 'block';
+        document.querySelector(SELECTORS.AUTHORIZE_BTN).style.display = 'none';
+        document.querySelector(SELECTORS.SIGNOUT_BTN).style.display = 'block';
 
         await Promise.all([
-            srcCourseList.load(),
-            dstCourseList.load()
+            AppState.srcCourseList.load(),
+            AppState.dstCourseList.load()
         ]);
-        srcCourseList.show();
-        dstCourseList.show();
+        AppState.srcCourseList.show();
+        AppState.dstCourseList.show();
     };
 
     if (gapi.client.getToken() === null) {
         // Prompt the user to select a Google Account and ask for consent to share their data
         // when establishing a new session.
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        AppState.tokenClient.requestAccessToken({ prompt: 'consent' });
     } else {
         // Skip display of account chooser and consent dialog for an existing session.
-        tokenClient.requestAccessToken({ prompt: '' });
+        AppState.tokenClient.requestAccessToken({ prompt: '' });
     }
 }
 
@@ -117,7 +135,7 @@ async function handleSelectCourse(selectObject) {
     //console.log(selectObject);
 
     // update course link
-    let courseContainer = selectObject.closest('.course-list').closest('div[id$="-course-container"]');
+    let courseContainer = selectObject.closest(SELECTORS.COURSE_LIST).closest('div[id$="-course-container"]');
     let courseLink = courseContainer.querySelector('.course-link');
     if (courseLink) {
         if (courseId && courseId !== 'kies') {
@@ -133,7 +151,7 @@ async function handleSelectCourse(selectObject) {
 
     // Determine which material list based on container ID
     let containerId = courseContainer.id;
-    let materialList = containerId === 'src-course-container' ? srcMaterialList : dstMaterialList;
+    let materialList = containerId === 'src-course-container' ? AppState.srcMaterialList : AppState.dstMaterialList;
     await materialList.load(courseId);
     materialList.show();
 }
@@ -145,10 +163,10 @@ async function handleCheckTopic(selectObject) {
     let topicChecked = false;
     if (topicItem.querySelector('.topic-input:checked')) { topicChecked = true };
 
-    srcMaterialList.selectAllInTopic(topicId, topicChecked);
+    AppState.srcMaterialList.selectAllInTopic(topicId, topicChecked);
 
     // adjust DOM of srcMaterials
-    srcMaterialList.show();
+    AppState.srcMaterialList.show();
 }
 
 async function handleCheckMaterial(selectObject) {
@@ -159,17 +177,17 @@ async function handleCheckMaterial(selectObject) {
     if (materialItem.querySelector('.material-input:checked')) { materialChecked = true };
 
     // update source material and dom
-    srcMaterialList.select(materialId, materialChecked);
-    srcMaterialList.show();
+    AppState.srcMaterialList.select(materialId, materialChecked);
+    AppState.srcMaterialList.show();
 }
 
 async function handleCopyClick() {
     console.log("start copying");
-    await srcMaterialList.copySelection(dstMaterialList.courseId);
+    await AppState.srcMaterialList.copySelection(AppState.dstMaterialList.courseId);
     console.log("start reloading dstContainer");
-    await dstMaterialList.load(dstMaterialList.courseId);
+    await AppState.dstMaterialList.load(AppState.dstMaterialList.courseId);
     console.log("start showing dstContainer");
-    dstMaterialList.show();
+    AppState.dstMaterialList.show();
 }
 
 /**
@@ -212,7 +230,7 @@ class CourseList {
         return this.courses;
     }
     show() {
-        let courseListElement = document.querySelector(`${this.selector} .course-list`)
+        let courseListElement = document.querySelector(`${this.selector} ${SELECTORS.COURSE_LIST}`)
 
         // remove old items from DOM
         let courseItems = courseListElement.querySelectorAll('.course-item');
@@ -324,8 +342,8 @@ class MaterialList {
     async copySelection(dstCourseId) {
 
         // log element in DOM
-        let logElement = document.querySelector(`#logcontent`)
-        let logContainer = document.querySelector(`#logcontainer`)
+        let logElement = document.querySelector(SELECTORS.LOG_CONTENT)
+        let logContainer = document.querySelector(SELECTORS.LOG_CONTAINER)
         const appendLog = (message) => {
             logElement.textContent += message;
             logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
@@ -379,7 +397,7 @@ class MaterialList {
         // Find or create "Classroom" folder in Drive
         let classroomFolderId = await findOrCreateFolder('Classroom', null);
         // Find or create folder for this destination classroom
-        let dstCourse = dstCourseList.courses.find(c => c.id === dstCourseId);
+        let dstCourse = AppState.dstCourseList.courses.find(c => c.id === dstCourseId);
         let dstCourseName = dstCourse ? dstCourse.name : `Classroom ${dstCourseId}`;
         let dstClassroomFolderId = await findOrCreateFolder(dstCourseName, classroomFolderId);
 
@@ -464,7 +482,7 @@ class MaterialList {
         let scrollX = window.scrollX; 
 
         // find topcilist element in DOM
-        let topicListElement = document.querySelector(`${this.selector} .topic-list`)
+        let topicListElement = document.querySelector(`${this.selector} ${SELECTORS.TOPIC_LIST}`)
 
         // remove old topics and materials from DOM
         //console.log(topicListElement);
@@ -585,7 +603,7 @@ async function findOrCreateFolder(folderName, parentId) {
  *  Objects of classes (global)
  */
 
-srcCourseList = new CourseList('#src-course-container');
-dstCourseList = new CourseList('#dst-course-container');
-srcMaterialList = new MaterialList('#src-material-container');
-dstMaterialList = new MaterialList('#dst-material-container');
+AppState.srcCourseList = new CourseList(SELECTORS.SRC_COURSE_CONTAINER);
+AppState.dstCourseList = new CourseList(SELECTORS.DST_COURSE_CONTAINER);
+AppState.srcMaterialList = new MaterialList(SELECTORS.SRC_MATERIAL_CONTAINER);
+AppState.dstMaterialList = new MaterialList(SELECTORS.DST_MATERIAL_CONTAINER);

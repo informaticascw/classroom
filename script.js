@@ -653,7 +653,7 @@ class MaterialList {
                 cloneMaterialName.textContent = `${material.title}`;
                 cloneMaterialName.classList.add(material.status);
                 if (material.state === "DRAFT") {
-                    cloneMaterialItem.classList.add("draft");
+                    cloneMaterialIcon.classList.add("draft");
                     cloneMaterialName.classList.add("draft");
                 }
                 if (cloneMaterialItem.querySelector(SELECTORS.MATERIAL_CHECKBOX)) {

@@ -9,7 +9,7 @@ const DISCOVERY_DOCS = [
 ];
 
 // Authorization scopes required by the API; 
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
+const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.courseworkmaterials https://www.googleapis.com/auth/classroom.coursework https://www.googleapis.com/auth/classroom.topics https://www.googleapis.com/auth/drive';
 
 // DOM Selectors
 const SELECTORS = {
@@ -197,6 +197,7 @@ async function handleCopyClick() {
 const COURSES_PAGE_SIZE = 1000; // maximum number of courses per page
 const TOPICS_PAGE_SIZE = 1000; // maximum number of topics per course per page
 const MATERIALS_PAGE_SIZE = 1000; // maximum number of materials per course per page
+const ASSIGNMENTS_PAGE_SIZE = 1000; // maximum number of assignments per course per page
 
 // locale-stable, case-insensitive, numeric-aware comparator
 const naturalCompare = new Intl.Collator('nl', { numeric: true, sensitivity: 'base' }).compare;
@@ -267,6 +268,7 @@ class MaterialList {
     async load(courseId) {
         this.courseId = courseId;
         let allMaterials = [];
+        let allAssignments = [];
         let allTopics = [];
         let pageToken;
 
@@ -281,6 +283,25 @@ class MaterialList {
                 });
                 const page = response.result.courseWorkMaterial || [];
                 allMaterials = allMaterials.concat(page);
+                pageToken = response.result.nextPageToken;
+            } while (pageToken);
+        } catch (error) {
+            console.log(error.message);
+            return;
+        }
+
+        pageToken = undefined;
+        // retrieve all assignment pages from gapi
+        try {
+            do {
+                const response = await gapi.client.classroom.courses.courseWork.list({
+                    courseId: `${courseId}`,
+                    courseWorkStates: ["DRAFT", "PUBLISHED"],
+                    pageSize: ASSIGNMENTS_PAGE_SIZE,
+                    pageToken,
+                });
+                const page = response.result.courseWork || [];
+                allAssignments = allAssignments.concat(page);
                 pageToken = response.result.nextPageToken;
             } while (pageToken);
         } catch (error) {
@@ -306,22 +327,32 @@ class MaterialList {
             return;
         }
 
-        this.materials = allMaterials;
+        // Mark assignments with a type property to differentiate them
+        for (let assignment of allAssignments) {
+            assignment.type = 'assignment';
+        }
+        // Mark materials with a type property
+        for (let material of allMaterials) {
+            material.type = 'material';
+        }
+
+        // Combine materials and assignments
+        this.materials = allMaterials.concat(allAssignments);
         const topics = allTopics;
 
-        // add corresponding topic to each material
+        // add corresponding topic to each material/assignment
         if (topics?.length > 0 && this.materials?.length > 0) {
-            for (let [index, material] of this.materials.entries()) {
+            for (let [index, item] of this.materials.entries()) {
                 this.materials[index] = Object.assign({},
-                    topics.find(topic => topic.topicId === material.topicId),
-                    material);
+                    topics.find(topic => topic.topicId === item.topicId),
+                    item);
             }
         }
 
-        // add topics that have no materials as empty materials with topic
+        // add topics that have no materials/assignments as empty materials with topic
         if (topics?.length > 0 && this.materials) {
             for (let topic of topics) {
-                if (!this.materials.find(material => material.topicId === topic.topicId)) {
+                if (!this.materials.find(item => item.topicId === topic.topicId)) {
                     this.materials.push(topic);
                 }
             }
@@ -453,22 +484,47 @@ class MaterialList {
                 }
             }
 
-            // Prepare material object for creation
-            let newMaterial = {
-                title: srcMaterial.title,
-                description: srcMaterial.description,
-                topicId: topicNameToIdMap[srcMaterial.name] || undefined,
-                materials: newMaterials,
-                state: "DRAFT" // 'DRAFT' for concept or 'PUBLISHED' for posted
-            };
-            try {
-                await gapi.client.classroom.courses.courseWorkMaterials.create({
-                    courseId: dstCourseId,
-                    resource: newMaterial
-                });
-                appendLog(`Copied material "${srcMaterial.title}" to destination.\n`);
-            } catch (error) {
-                appendLog(`Could not copy material "${srcMaterial.title}" to destination: ${error.message}\n`);
+            // Prepare material/assignment object for creation based on type
+            if (srcMaterial.type === 'assignment') {
+                // Prepare assignment object for creation
+                let newAssignment = {
+                    title: srcMaterial.title,
+                    description: srcMaterial.description,
+                    topicId: topicNameToIdMap[srcMaterial.name] || undefined,
+                    materials: newMaterials,
+                    state: "DRAFT", // 'DRAFT' for concept or 'PUBLISHED' for posted
+                    maxPoints: srcMaterial.maxPoints || undefined,
+                    dueDate: srcMaterial.dueDate || undefined,
+                    dueTime: srcMaterial.dueTime || undefined,
+                    workType: srcMaterial.workType || "ASSIGNMENT"
+                };
+                try {
+                    await gapi.client.classroom.courses.courseWork.create({
+                        courseId: dstCourseId,
+                        resource: newAssignment
+                    });
+                    appendLog(`Copied assignment "${srcMaterial.title}" to destination.\n`);
+                } catch (error) {
+                    appendLog(`Could not copy assignment "${srcMaterial.title}" to destination: ${error.message}\n`);
+                }
+            } else {
+                // Prepare material object for creation
+                let newMaterial = {
+                    title: srcMaterial.title,
+                    description: srcMaterial.description,
+                    topicId: topicNameToIdMap[srcMaterial.name] || undefined,
+                    materials: newMaterials,
+                    state: "DRAFT" // 'DRAFT' for concept or 'PUBLISHED' for posted
+                };
+                try {
+                    await gapi.client.classroom.courses.courseWorkMaterials.create({
+                        courseId: dstCourseId,
+                        resource: newMaterial
+                    });
+                    appendLog(`Copied material "${srcMaterial.title}" to destination.\n`);
+                } catch (error) {
+                    appendLog(`Could not copy material "${srcMaterial.title}" to destination: ${error.message}\n`);
+                }
             }
         }
         appendLog(`Finished copying!\n`);

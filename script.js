@@ -23,6 +23,8 @@ const SCOPES = REQUIRED_SCOPES.join(' ');
 const SELECTORS = {
     AUTHORIZE_BTN: '#authorize_button',
     SIGNOUT_BTN: '#signout_button',
+    SETTING_DRAFT: '#setting_draft',
+    SETTING_ADD_CLASSNAME: '#setting_add_classname',
     SRC_COURSE_CONTAINER: '#src-course-container',
     DST_COURSE_CONTAINER: '#dst-course-container',
     SRC_MATERIAL_CONTAINER: '#src-material-container',
@@ -40,6 +42,10 @@ const AppState = {
     dstCourseList: null,
     srcMaterialList: null,
     dstMaterialList: null,
+    settings: {
+        publishAsDraft: true,
+        addClassNameToFileName: true,
+    },
     tokenClient: null,
     isGapiInited: false,
     isGisInited: false
@@ -189,7 +195,14 @@ async function handleCheckMaterial(selectObject) {
     AppState.srcMaterialList.show();
 }
 
+function syncSettingsFromUI() {
+    AppState.settings.publishAsDraft = document.querySelector(SELECTORS.SETTING_DRAFT)?.checked ?? true;
+    AppState.settings.addClassNameToFileName = document.querySelector(SELECTORS.SETTING_ADD_CLASSNAME)?.checked ?? true;
+}
+
 async function handleCopyClick() {
+    syncSettingsFromUI();
+
     console.log("start copying");
     await AppState.srcMaterialList.copySelection(AppState.dstMaterialList.courseId);
     console.log("start reloading dstContainer");
@@ -377,6 +390,9 @@ class MaterialList {
 
     async copySelection(dstCourseId) {
 
+        const publishAsDraft = AppState.settings.publishAsDraft;
+        const addClassNameToFileName = AppState.settings.addClassNameToFileName;
+
         // log element in DOM
         let logElement = document.querySelector(SELECTORS.LOG_CONTENT)
         let logContainer = document.querySelector(SELECTORS.LOG_CONTAINER)
@@ -455,13 +471,13 @@ class MaterialList {
                         let fileId = mat.driveFile.driveFile.id;
                         let srcfilename = mat.driveFile.driveFile.title ? mat.driveFile.driveFile.title : "Unnamed";
                         let dstfilename = srcfilename;
-                        if (className || className === "") {
+                        if (addClassNameToFileName && (className || className === "")) {
                             // splits naam in basis + extensie
                             let dotIndex = srcfilename.lastIndexOf(".");
                             let basename = dotIndex > -1 ? srcfilename.substring(0, dotIndex) : srcfilename;
                             let extension = dotIndex > -1 ? srcfilename.substring(dotIndex) : "";
                             // voeg className vóór de extensie toe
-                            let dstfilename = `${basename} (${className})${extension}`;
+                            dstfilename = `${basename} (${className})${extension}`;
                         }
                         try {
                             let fileCopyResponse = await gapi.client.drive.files.copy({
@@ -497,7 +513,7 @@ class MaterialList {
                     description: srcMaterial.description,
                     topicId: topicNameToIdMap[srcMaterial.name] || undefined,
                     materials: newMaterials,
-                    state: "DRAFT", // 'DRAFT' for concept or 'PUBLISHED' for posted
+                    state: publishAsDraft ? "DRAFT" : "PUBLISHED",
                     maxPoints: srcMaterial.maxPoints || undefined,
                     dueDate: srcMaterial.dueDate || undefined,
                     dueTime: srcMaterial.dueTime || undefined,
@@ -519,7 +535,7 @@ class MaterialList {
                     description: srcMaterial.description,
                     topicId: topicNameToIdMap[srcMaterial.name] || undefined,
                     materials: newMaterials,
-                    state: "DRAFT" // 'DRAFT' for concept or 'PUBLISHED' for posted
+                    state: publishAsDraft ? "DRAFT" : "PUBLISHED"
                 };
                 try {
                     await gapi.client.classroom.courses.courseWorkMaterials.create({

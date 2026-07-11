@@ -20,27 +20,20 @@ ul.material-list {
   margin-bottom: 1rem;
 }
 
-#src-container {
+[data-js-side] {
   flex: 1;
   min-width: 25rem;
   padding: 0.5rem;
   background-color: lightgrey;
 }
 
-#dst-container {
-  flex: 1;
-  min-width: 25rem;
-  padding: 0.5rem;
-  background-color: lightgrey;
-}
-
-#dst-container .add {
+[data-js-side="destination"] .add {
   color: green;
 }
-#dst-container .update {
+[data-js-side="destination"] .update {
   color: yellow;
 }
-#dst-container .remove {
+[data-js-side="destination"] .remove {
   text-decoration: line-through;
 }
 

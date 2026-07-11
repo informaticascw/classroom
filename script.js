@@ -20,42 +20,35 @@ const REQUIRED_SCOPES = [
 const SCOPES = REQUIRED_SCOPES.join(' ');
 
 // DOM Selectors
+// Convention: id= for singletons, data-js-* for all JS coupling, CSS classes for styling only.
 const SELECTORS = {
+    // Singleton elements (always present, identified by id)
     AUTHORIZE_BTN: '#authorize_button',
     SIGNOUT_BTN: '#signout_button',
     SETTING_DRAFT: '#setting_draft',
     SETTING_ADD_CLASSNAME: '#setting_add_classname',
-    SRC_COURSE_CONTAINER: '#src-course-container',
-    DST_COURSE_CONTAINER: '#dst-course-container',
-    SRC_MATERIAL_CONTAINER: '#src-material-container',
-    DST_MATERIAL_CONTAINER: '#dst-material-container',
     LOG_CONTENT: '#logcontent',
     LOG_CONTAINER: '#logcontainer',
-    TOPIC_LIST: '.topic-list',
-    MATERIAL_LIST: '.material-list',
-    COURSE_LIST: '.course-list',
-    COURSE_LINK: '.course-link',
-    COURSE_CONTAINER_SUFFIX: 'div[id$="-course-container"]',
-    COURSE_ITEM: '.course-item',
-    COURSE_ITEM_TEMPLATE: '.course-item-template',
-    COURSE_OPTION: 'option',
-    COURSE_ID: '.course-id',
-    COURSE_NAME: '.course-name',
-    TOPIC_CONTAINER_SUFFIX: 'div[id$="-material-container"]',
-    TOPIC_ITEM: '.topic-item',
-    TOPIC_ITEM_TEMPLATE: '.topic-item-template',
-    TOPIC_ID: '.topic-id',
-    TOPIC_NAME: '.topic-name',
-    TOPIC_INPUT: '.topic-input',
-    TOPIC_INPUT_CHECKED: '.topic-input:checked',
-    TOPIC_TOGGLE: '.topic-toggle',
-    MATERIAL_ITEM: '.material-item',
-    MATERIAL_ITEM_TEMPLATE: '.material-item-template',
-    MATERIAL_ID: '.material-id',
-    MATERIAL_INPUT: '.material-input',
-    MATERIAL_INPUT_CHECKED: '.material-input:checked',
-    MATERIAL_ICON: '.material-icon',
-    MATERIAL_NAME: '.material-name'
+    // Generic containers (role-based)
+    COURSE_CONTAINER: '[data-js-role="course"]',
+    // Course elements
+    COURSE_SELECT: '[data-js-role="course-select"]',
+    COURSE_TEMPLATE: '[data-js-role="course-template"]',
+    COURSE_OPTION: '[data-js-role="course-option"]',
+    COURSE_NAME: '[data-js-role="course-name"]',
+    COURSE_LINK: '[data-js-role="course-link"]',
+    // Topic elements
+    TOPIC_TEMPLATE: '[data-js-role="topic-template"]',
+    TOPIC_ITEM: '[data-js-role="topic-item"]',
+    TOPIC_NAME: '[data-js-role="topic-name"]',
+    TOPIC_CHECKBOX: '[data-js-role="topic-checkbox"]',
+    TOPIC_CHECKBOX_CHECKED: '[data-js-role="topic-checkbox"]:checked',
+    // Material elements
+    MATERIAL_TEMPLATE: '[data-js-role="material-template"]',
+    MATERIAL_ITEM: '[data-js-role="material-item"]',
+    MATERIAL_NAME: '[data-js-role="material-name"]',
+    MATERIAL_CHECKBOX: '[data-js-role="material-checkbox"]',
+    MATERIAL_CHECKBOX_CHECKED: '[data-js-role="material-checkbox"]:checked',
 };
 
 // Centralized Application State
@@ -171,7 +164,7 @@ async function handleSelectCourse(selectObject) {
     //console.log(selectObject);
 
     // update course link
-    let courseContainer = selectObject.closest(SELECTORS.COURSE_LIST).closest(SELECTORS.COURSE_CONTAINER_SUFFIX);
+    let courseContainer = selectObject.closest(SELECTORS.COURSE_CONTAINER);
     let courseLink = courseContainer.querySelector(SELECTORS.COURSE_LINK);
     if (courseLink) {
         if (courseId && courseId !== 'kies') {
@@ -185,9 +178,9 @@ async function handleSelectCourse(selectObject) {
         }
     }
 
-    // Determine which material list based on container ID
-    let containerId = courseContainer.id;
-    let materialList = containerId === 'src-course-container' ? AppState.srcMaterialList : AppState.dstMaterialList;
+    // Determine which material list based on side
+    let side = selectObject.closest('[data-js-side]').dataset.jsSide;
+    let materialList = side === 'source' ? AppState.srcMaterialList : AppState.dstMaterialList;
     await materialList.load(courseId);
     materialList.show();
 }
@@ -195,9 +188,9 @@ async function handleSelectCourse(selectObject) {
 async function handleCheckTopic(selectObject) {
     // check/uncheck all materials in topic
     let topicItem = selectObject.closest(SELECTORS.TOPIC_ITEM);
-    let topicId = topicItem.querySelector(SELECTORS.TOPIC_ID).textContent;
+    let topicId = topicItem.dataset.jsTopicId;
     let topicChecked = false;
-    if (topicItem.querySelector(SELECTORS.TOPIC_INPUT_CHECKED)) { topicChecked = true };
+    if (topicItem.querySelector(SELECTORS.TOPIC_CHECKBOX_CHECKED)) { topicChecked = true };
 
     AppState.srcMaterialList.selectAllInTopic(topicId, topicChecked);
 
@@ -208,9 +201,9 @@ async function handleCheckTopic(selectObject) {
 async function handleCheckMaterial(selectObject) {
     // check/uncheck material
     let materialItem = selectObject.closest(SELECTORS.MATERIAL_ITEM);
-    let materialId = materialItem.querySelector(SELECTORS.MATERIAL_ID).textContent;
+    let materialId = materialItem.dataset.jsMaterialId;
     let materialChecked = false;
-    if (materialItem.querySelector(SELECTORS.MATERIAL_INPUT_CHECKED)) { materialChecked = true };
+    if (materialItem.querySelector(SELECTORS.MATERIAL_CHECKBOX_CHECKED)) { materialChecked = true };
 
     // update source material and dom
     AppState.srcMaterialList.select(materialId, materialChecked);
@@ -219,9 +212,9 @@ async function handleCheckMaterial(selectObject) {
 
 function handleToggleTopic(toggleButton) {
     let topicItem = toggleButton.closest(SELECTORS.TOPIC_ITEM);
-    let topicId = topicItem.querySelector(SELECTORS.TOPIC_ID).textContent;
-    let topicContainer = topicItem.closest(SELECTORS.TOPIC_CONTAINER_SUFFIX);
-    let materialList = topicContainer.id === 'src-material-container' ? AppState.srcMaterialList : AppState.dstMaterialList;
+    let topicId = topicItem.dataset.jsTopicId;
+    let side = toggleButton.closest('[data-js-side]').dataset.jsSide;
+    let materialList = side === 'source' ? AppState.srcMaterialList : AppState.dstMaterialList;
 
     materialList.toggleTopic(topicId);
     materialList.show();
@@ -257,8 +250,8 @@ const naturalCompare = new Intl.Collator('nl', { numeric: true, sensitivity: 'ba
 
 
 class CourseList {
-    constructor(selector) {
-        this.selector = selector; // css selector for html container that contains course-list
+    constructor(side) {
+        this.selector = `[data-js-side="${side}"] [data-js-role="course"]`;
         this.courses = [];
     }
     // method to load materials in course
@@ -284,27 +277,27 @@ class CourseList {
         return this.courses;
     }
     show() {
-        let courseListElement = document.querySelector(`${this.selector} ${SELECTORS.COURSE_LIST}`)
+        let courseListElement = document.querySelector(`${this.selector} ${SELECTORS.COURSE_SELECT}`)
 
         // remove old items from DOM
-        let courseItems = courseListElement.querySelectorAll(SELECTORS.COURSE_ITEM);
+        let courseItems = courseListElement.querySelectorAll(SELECTORS.COURSE_OPTION);
         for (let courseItem of courseItems) {
             courseItem.remove();
         }
 
         // add new items to DOM
-        let template = courseListElement.querySelector(SELECTORS.COURSE_ITEM_TEMPLATE);
+        let template = courseListElement.querySelector(SELECTORS.COURSE_TEMPLATE);
 
         let clone = template.content.cloneNode(true);
         clone.querySelector(SELECTORS.COURSE_OPTION).value = `kies`;
-        clone.querySelector(SELECTORS.COURSE_ID).textContent = `classroom-id`;
         clone.querySelector(SELECTORS.COURSE_NAME).textContent = `Kies je classroom`;
         courseListElement.appendChild(clone);
 
         for (let course of this.courses) {
             clone = template.content.cloneNode(true);
-            clone.querySelector(SELECTORS.COURSE_OPTION).value = `${course.id}`;
-            clone.querySelector(SELECTORS.COURSE_ID).textContent = `${course.id}`;
+            let opt = clone.querySelector(SELECTORS.COURSE_OPTION);
+            opt.value = `${course.id}`;
+            opt.dataset.jsCourseId = `${course.id}`;
             clone.querySelector(SELECTORS.COURSE_NAME).textContent = `${course.name}`;
             courseListElement.appendChild(clone);
         }
@@ -312,8 +305,8 @@ class CourseList {
 }
 
 class MaterialList {
-    constructor(selector) {
-        this.selector = selector; // css selector
+    constructor(side) {
+        this.selector = `[data-js-side="${side}"] [data-js-role="material"]`;
         this.materials = [];
         this.courseId = undefined;
         this.collapsedTopicIds = new Set();
@@ -595,7 +588,7 @@ class MaterialList {
         let scrollX = window.scrollX; 
 
         // find topcilist element in DOM
-        let topicListElement = document.querySelector(`${this.selector} ${SELECTORS.TOPIC_LIST}`)
+        let topicListElement = document.querySelector(`${this.selector} [data-js-role="topic-list"]`)
 
         // remove old topics and materials from DOM
         //console.log(topicListElement);
@@ -616,23 +609,23 @@ class MaterialList {
         }
 
         // add new topics to dom
-        let templateTopicItem = topicListElement.querySelector(SELECTORS.TOPIC_ITEM_TEMPLATE);
+        let templateTopicItem = topicListElement.querySelector(SELECTORS.TOPIC_TEMPLATE);
         for (let topic of uniqueTopics) {
             // clone topic
             let cloneTopicItem = templateTopicItem.content.cloneNode(true);
-            cloneTopicItem.querySelector(SELECTORS.TOPIC_ID).textContent = `${topic.topicId}`;
+            cloneTopicItem.querySelector(SELECTORS.TOPIC_ITEM).dataset.jsTopicId = `${topic.topicId}`;
             cloneTopicItem.querySelector(SELECTORS.TOPIC_NAME).textContent = `${topic.name}`;
             let isCollapsed = this.collapsedTopicIds.has(topic.topicId);
 
-            let cloneToggle = cloneTopicItem.querySelector(SELECTORS.TOPIC_TOGGLE);
+            let cloneToggle = cloneTopicItem.querySelector('[data-js-role="topic-toggle"]');
             if (cloneToggle) {
                 cloneToggle.textContent = isCollapsed ? '▸' : '▾';
                 cloneToggle.setAttribute('aria-expanded', (!isCollapsed).toString());
             }
 
-            if (cloneTopicItem.querySelector(SELECTORS.TOPIC_INPUT)) {
+            if (cloneTopicItem.querySelector(SELECTORS.TOPIC_CHECKBOX)) {
                 // set check of topic according to underlying materials
-                let cloneTopicInput = cloneTopicItem.querySelector(SELECTORS.TOPIC_INPUT)
+                let cloneTopicInput = cloneTopicItem.querySelector(SELECTORS.TOPIC_CHECKBOX)
                 let materialCounted = this.materials.filter(material => material.topicId === topic.topicId).length;
                 let materialsChecked = this.materials.filter(material => material.topicId === topic.topicId && material.checked === true).length;
                 if (materialsChecked > 0) {
@@ -647,12 +640,12 @@ class MaterialList {
                 }
             }
             // add materials to cloned topic
-            let materialListElement = cloneTopicItem.querySelector(SELECTORS.MATERIAL_LIST);
-            let templateMaterialItem = materialListElement.querySelector(SELECTORS.MATERIAL_ITEM_TEMPLATE);
+            let materialListElement = cloneTopicItem.querySelector('[data-js-role="material-list"]');
+            let templateMaterialItem = materialListElement.querySelector(SELECTORS.MATERIAL_TEMPLATE);
             for (let material of this.materials.filter(material => material.topicId === topic.topicId)) {
                 let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
-                cloneMaterialItem.querySelector(SELECTORS.MATERIAL_ID).textContent = `${material.id}`;
-                let cloneMaterialIcon = cloneMaterialItem.querySelector(SELECTORS.MATERIAL_ICON);
+                cloneMaterialItem.querySelector(SELECTORS.MATERIAL_ITEM).dataset.jsMaterialId = `${material.id}`;
+                let cloneMaterialIcon = cloneMaterialItem.querySelector('[data-js-role="material-icon"]');
                 let cloneMaterialName = cloneMaterialItem.querySelector(SELECTORS.MATERIAL_NAME);
                 if (cloneMaterialIcon) {
                     cloneMaterialIcon.textContent = material.type === 'assignment' ? 'assignment' : 'developer_guide';
@@ -663,8 +656,8 @@ class MaterialList {
                     cloneMaterialItem.classList.add("draft");
                     cloneMaterialName.classList.add("draft");
                 }
-                if (cloneMaterialItem.querySelector(SELECTORS.MATERIAL_INPUT)) {
-                    cloneMaterialItem.querySelector(SELECTORS.MATERIAL_INPUT).checked = material.checked;
+                if (cloneMaterialItem.querySelector(SELECTORS.MATERIAL_CHECKBOX)) {
+                    cloneMaterialItem.querySelector(SELECTORS.MATERIAL_CHECKBOX).checked = material.checked;
                 }
                 materialListElement.appendChild(cloneMaterialItem);
             }
@@ -740,7 +733,7 @@ async function findOrCreateFolder(folderName, parentId) {
  *  Objects of classes (global)
  */
 
-AppState.srcCourseList = new CourseList(SELECTORS.SRC_COURSE_CONTAINER);
-AppState.dstCourseList = new CourseList(SELECTORS.DST_COURSE_CONTAINER);
-AppState.srcMaterialList = new MaterialList(SELECTORS.SRC_MATERIAL_CONTAINER);
-AppState.dstMaterialList = new MaterialList(SELECTORS.DST_MATERIAL_CONTAINER);
+AppState.srcCourseList = new CourseList('source');
+AppState.dstCourseList = new CourseList('destination');
+AppState.srcMaterialList = new MaterialList('source');
+AppState.dstMaterialList = new MaterialList('destination');

@@ -26,133 +26,84 @@
 
   <div class="src-and-dst">
 
-    <div id="src-container">
-      <!--Pulldown of source classrooms-->
-      <!--Javascript code works with this parent-child structure-->
-      <!--class="course-list"-->
-      <!--  class="course-item"-->
-      <!--  class="course-item"-->
-      <div id="src-course-container">
+    <div data-js-side="source">
+      <div data-js-role="course">
         <label>Bron:
-          <select class="course-list" onchange="handleSelectCourse(this)">
-            <option class="course-item" value="kies">
-              <span class="course-name">Log in om classrooms te laden</span>
-              <span class="course-id" hidden></span>
+          <select data-js-role="course-select" onchange="handleSelectCourse(this)">
+            <option data-js-role="course-option" value="kies">
+              <span data-js-role="course-name">Log in om classrooms te laden</span>
             </option>
-            <template class="course-item-template">
-              <option class="course-item" value="xxxxxx">
-                <span class="course-name">Naam van classroom</span>
-                (<span class="course-id" hidden>xxxxxx</span>)
-                <!--TODO: fix that hidden isn't working inside option-tag-->
+            <template data-js-role="course-template">
+              <option data-js-role="course-option" value="xxxxxx" data-js-course-id="xxxxxx">
+                <span data-js-role="course-name">Naam van classroom</span>
               </option>
             </template>
-            <!--- more course-items will be cloned here -->
           </select>
         </label>
-        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
+        <a data-js-role="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
           style="display: none;">Bekijk classroom</a>
       </div>
 
-      <!--List of materials grouped by topic-->
-      <!--Javascript code works with this parent-child structure-->
-      <!--class="topic-list"-->
-      <!--  class="topic-item"-->
-      <!--  class="material-list"-->
-      <!--    class="material-item"-->
-      <!--    class="material-item"-->
-      <!--  class="topic-item"-->
-      <!--  class="material-list"-->
-      <!--    class="material-item"-->
-      <!--    class="material-item"-->
-      <div id="src-material-container">
-        <ul class="topic-list">
-          <template class="topic-item-template">
-            <li class="topic-item">
-              <button class="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
+      <div data-js-role="material">
+        <ul class="topic-list" data-js-role="topic-list">
+          <template data-js-role="topic-template">
+            <li data-js-role="topic-item" data-js-topic-id="xxxxxx">
+              <button class="topic-toggle" data-js-role="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
               <label>
-                <input class="topic-input" type="checkbox" onchange="handleCheckTopic(this)">
-                <span class="topic-name">Topic name</span>
-                <span class="topic-id" hidden>xxxxxx</span>
+                <input data-js-role="topic-checkbox" type="checkbox" onchange="handleCheckTopic(this)">
+                <span data-js-role="topic-name">Topic name</span>
               </label>
-              <ul class="material-list">
-                <template class="material-item-template">
-                  <li class="material-item">
+              <ul class="material-list" data-js-role="material-list">
+                <template data-js-role="material-template">
+                  <li data-js-role="material-item" data-js-material-id="xxxxxx">
                     <label>
-                      <input class="material-input" type="checkbox" onchange="handleCheckMaterial(this)">
-                      <span class="material-symbols-outlined material-icon">developer_guide</span>
-                      <span class="material-name">Material name</span>
-                      <span class="material-id" hidden>xxxxxx</span>
+                      <input data-js-role="material-checkbox" type="checkbox" onchange="handleCheckMaterial(this)">
+                      <span class="material-symbols-outlined" data-js-role="material-icon">developer_guide</span>
+                      <span data-js-role="material-name">Material name</span>
                     </label>
                   </li>
-                  <!--more material-items may be cloned here-->
                 </template>
               </ul>
             </li>
-            <!--more topic-items may be cloned here-->
           </template>
         </ul>
       </div>
 
     </div>
 
-    <div id="dst-container">
-      <!--Pulldown of destination classrooms-->
-      <!--Javascript code works with this parent-child structure-->
-      <!--class="course-list"-->
-      <!--  class="course-item"-->
-      <!--  class="course-item"-->
-      <div id="dst-course-container">
+    <div data-js-side="destination">
+      <div data-js-role="course">
         <label>Bestemming:
-          <select class="course-list" onchange="handleSelectCourse(this)">
-            <option class="course-item">
-              <span class="course-name">Log in om classrooms te laden</span>
-              <span class="course-id" hidden></span>
+          <select data-js-role="course-select" onchange="handleSelectCourse(this)">
+            <option data-js-role="course-option">
+              <span data-js-role="course-name">Log in om classrooms te laden</span>
             </option>
-            <template class="course-item-template">
-              <option class="course-item">
-                <span class="course-name">Naam van classroom</span>
-                (<span class="course-id" hidden>xxxxxx</span>)
-                <!--TODO: fix that hidden isn't working inside option-tag-->
+            <template data-js-role="course-template">
+              <option data-js-role="course-option" data-js-course-id="xxxxxx">
+                <span data-js-role="course-name">Naam van classroom</span>
               </option>
             </template>
-            <!--- more course-items will be cloned here -->
           </select>
         </label>
-        <a class="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
+        <a data-js-role="course-link" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer"
           style="display: none;">Bekijk classroom</a>
       </div>
 
-
-      <!--List of materials grouped by topic-->
-      <!--Javascript code works with this parent-child structure-->
-      <!--class="topic-list"-->
-      <!--  class="topic-item"-->
-      <!--  class="material-list"-->
-      <!--    class="material-item"-->
-      <!--    class="material-item"-->
-      <!--  class="topic-item"-->
-      <!--  class="material-list"-->
-      <!--    class="material-item"-->
-      <!--    class="material-item"-->
-      <div id="dst-material-container">
-        <ul class="topic-list">
-          <template class="topic-item-template">
-            <li class="topic-item">
-              <button class="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
-              <span class="topic-name">Topic name</span>
-              <span class="topic-id" hidden>xxxxxx</span>
-              <ul class="material-list">
-                <template class="material-item-template">
-                  <li class="material-item">
-                    <span class="material-symbols-outlined material-icon">developer_guide</span>
-                    <span class="material-name">Material name</span>
-                    <span class="material-id" hidden>xxxxxx</span>
+      <div data-js-role="material">
+        <ul class="topic-list" data-js-role="topic-list">
+          <template data-js-role="topic-template">
+            <li data-js-role="topic-item" data-js-topic-id="xxxxxx">
+              <button class="topic-toggle" data-js-role="topic-toggle" type="button" onclick="handleToggleTopic(this)">▾</button>
+              <span data-js-role="topic-name">Topic name</span>
+              <ul class="material-list" data-js-role="material-list">
+                <template data-js-role="material-template">
+                  <li data-js-role="material-item" data-js-material-id="xxxxxx">
+                    <span class="material-symbols-outlined" data-js-role="material-icon">developer_guide</span>
+                    <span data-js-role="material-name">Material name</span>
                   </li>
-                  <!--more material-items may be cloned here-->
                 </template>
               </ul>
             </li>
-            <!--more topic-items may be cloned here-->
           </template>
         </ul>
       </div>

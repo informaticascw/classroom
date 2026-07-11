@@ -630,10 +630,16 @@ class MaterialList {
             for (let material of this.materials.filter(material => material.topicId === topic.topicId)) {
                 let cloneMaterialItem = templateMaterialItem.content.cloneNode(true);
                 cloneMaterialItem.querySelector(".material-id").textContent = `${material.id}`;
-                cloneMaterialItem.querySelector(".material-name").textContent = `${material.title}`;
-                cloneMaterialItem.querySelector(".material-name").classList.add(material.status);
+                let cloneMaterialIcon = cloneMaterialItem.querySelector(".material-icon");
+                let cloneMaterialName = cloneMaterialItem.querySelector(".material-name");
+                if (cloneMaterialIcon) {
+                    cloneMaterialIcon.textContent = material.type === 'assignment' ? 'assignment' : 'developer_guide';
+                }
+                cloneMaterialName.textContent = `${material.title}`;
+                cloneMaterialName.classList.add(material.status);
                 if (material.state === "DRAFT") {
-                    cloneMaterialItem.querySelector(".material-name").classList.add("draft");
+                    cloneMaterialItem.classList.add("draft");
+                    cloneMaterialName.classList.add("draft");
                 }
                 if (cloneMaterialItem.querySelector(".material-input")) {
                     cloneMaterialItem.querySelector(".material-input").checked = material.checked;

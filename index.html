@@ -19,7 +19,7 @@
   <!--Add buttons to initiate auth sequence and sign out-->
   <div class="card">
     <h2 class="card-title">Inloggen</h2>
-    <p class="card-description">Log in met je google-account voor docenten.</p>
+    <p class="card-description">Log in met je stanislascollege.net account voor docenten.</p>
     <button id="authorize_button" onclick="handleAuthClick()" style="display: none;">Log in</button>
     <button id="signout_button" onclick="handleSignoutClick()" style="display: none;">Log uit</button>
   </div>
@@ -118,13 +118,13 @@
   <div class="card">
     <h2 class="card-title">Instellingen</h2>
     <p class="card-description">Gebruik de standaardinstellingen, of pas ze aan.</p>
-    <div class="copy-settings">
-      <label>
-        <input id="setting_draft" type="checkbox" checked>
+    <div class="settings-container">
+      <label class="switch-row">
+        <input class="switch-box" id="setting_draft" type="checkbox" checked>
         Publiceren als concept
       </label>
-      <label>
-        <input id="setting_add_classname" type="checkbox" checked>
+      <label class="switch-row">
+        <input class="switch-box" id="setting_add_classname" type="checkbox" checked>
         Klasnamen toevoegen aan bestandsnamen
       </label>
     </div>

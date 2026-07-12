@@ -12,23 +12,25 @@
 <body>
 
   <div class="header">
-    <h1>Snel lesmateriaal in classrooms klaarzetten</h1>
-    <p class="warning">
-      This page is experimental, use at your own risk.
-    </p>
+    <h1 class="header-title">Classroom Automation</h1>
+    <p class="header-description">Snel lesmateriaal in classrooms klaarzetten</p>
   </div>
 
   <!--Add buttons to initiate auth sequence and sign out-->
-  <div class="signin">
+  <div class="card">
+    <h2 class="card-title">Inloggen</h2>
+    <p class="card-description">Log in met je google-account voor docenten.</p>
     <button id="authorize_button" onclick="handleAuthClick()">Log in</button>
     <button id="signout_button" onclick="handleSignoutClick()">Log uit</button>
   </div>
 
-  <div class="src-and-dst">
+  <div class="container">
 
-    <div data-js-side="source">
+    <div data-js-side="source" class="card">
+      <h2 class="card-title">Bron</h2>
+      <p class="card-description">Selecteer de classroom waarvan je materialen wilt kopiëren.</p>
       <div data-js-role="course">
-        <label>Bron:
+        <label>
           <select data-js-role="course-select" onchange="handleSelectCourse(this)">
             <option data-js-role="course-option" value="kies">
               <span data-js-role="course-name">Log in om classrooms te laden</span>
@@ -71,9 +73,11 @@
 
     </div>
 
-    <div data-js-side="destination">
+    <div data-js-side="destination" class="card">
+      <h2 class="card-title">Bestemming</h2>
+      <p class="card-description">Selecteer de classroom waar je materialen naartoe wilt kopiëren.</p>
       <div data-js-role="course">
-        <label>Bestemming:
+        <label>
           <select data-js-role="course-select" onchange="handleSelectCourse(this)">
             <option data-js-role="course-option">
               <span data-js-role="course-name">Log in om classrooms te laden</span>
@@ -113,7 +117,9 @@
   </div>
 
   <!--Copy button-->
-  <div class="copy">
+  <div class="card">
+    <h2 class="card-title">Instellingen</h2>
+    <p class="card-description">Gebruik de standaardinstellingen, of pas ze aan.</p>
     <div class="copy-settings">
       <label>
         <input id="setting_draft" type="checkbox" checked>
@@ -124,17 +130,22 @@
         Klasnamen toevoegen aan bestandsnamen
       </label>
     </div>
+  </div>
+
+  <div class="card">
+    <h2 class="card-title">Kopieer</h2>
+    <p class="card-description">Start het kopiëren van geselecteerde materialen.</p>
     <button id="copy_button" onclick="handleCopyClick()">Kopieer</button>
   </div>
 
   <!--Log output-->
-  <div class="log" id="logcontainer">
-    Voortgang van kopieren (hou deze pagina open tot `Finished copying!` verschijnt):
+  <div class="card"">
+    <h2 class="card-title">Voortgang</h2>
+    <p class="card-description">Wacht tot `Finished copying!` verschijnt.</p>
     <pre id="logcontent" style="white-space: pre-wrap;"></pre>
   </div>
 
   <footer class="footer">
-    <hr>
     <a href=https://github.com/informaticascw/classroom/blob/main/readme.md#how-to-use-this-website-for-teachers-stanislascollegenet" target="_blank" rel="noopener noreferrer">Documentation</a>
     | <a href="https://github.com/informaticascw/classroom" target="_blank" rel="noopener noreferrer">Source code</a>
     | <a href="LICENSE" target="_blank" rel="noopener noreferrer">License</a>

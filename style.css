@@ -3,53 +3,46 @@ ul.material-list {
   list-style: none;
 }
 
+/**
+ * CSS Variables
+ */
+:root {
+  --primary-blue: #2196F3;
+  --primary-blue-dark: #1976D2;
+  --primary-blue-darker: #1565C0;
+  --text-primary: #212121;
+  --text-secondary: #666;
+  --border-light: #e8e8e8;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
 
 /**
  * page layout
  */
 
-.header, .signin, .src-and-dst, .copy, .log {
+.header, .log, .container {
   margin-bottom: 1rem;
 }
 
-.src-and-dst {
-  /*width: 100%;*/
+.container {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
-[data-js-side] {
+.container > * {
   flex: 1;
-  min-width: 25rem;
-  padding: 0.5rem;
-  background-color: lightgrey;
-}
-
-[data-js-side="destination"] .add {
-  color: green;
-}
-[data-js-side="destination"] .update {
-  color: yellow;
-}
-[data-js-side="destination"] .remove {
-  text-decoration: line-through;
+  min-width: 20rem;
 }
 
 .draft {
   opacity: 0.5;
 }
 
-.log {
-  border: 1px solid black;
+#logcontent {
   padding: 0.5rem;
   overflow-y: auto;
-  max-height: 12.5rem;
-}
-
-.warning {
-  background-color:rgba(255, 0, 0, 0.5);
+  max-height: 10rem;
 }
 
 .copy-settings {
@@ -60,13 +53,120 @@ ul.material-list {
 .topic-toggle {
   border: none;
   background: transparent;
-}
-
-.material-icon {
+  color: #000;
+  cursor: pointer;
+  padding: 0;
   font-size: 1rem;
-  font-family: 'Material Symbols Outlined';
-  font-style: normal;
-  font-weight: normal;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
 }
 
+li[data-js-role="topic-item"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card, .header {
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  background: white;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.header {
+  border: 0px;
+  box-shadow: none;
+  border-style: none;
+}
+
+.card-title, .header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.header-title {
+  color: var(--primary-blue-darker);
+}
+
+.card-description, .header-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+}
+.header-description {
+  color: var(--primary-blue);
+}
+
+.material-list {
+  flex-basis: 100%;
+  margin-left: 1.5rem;
+}
+
+button {
+  background-color: var(--primary-blue);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  background-color: var(--primary-blue-dark);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+button:active {
+  background-color: var(--primary-blue-darker);
+}
+
+button.secondary {
+  background-color: transparent;
+  color: var(--primary-blue);
+  border: 1px solid var(--primary-blue);
+}
+
+button.secondary:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+button.secondary:active {
+  background-color: rgba(33, 150, 243, 0.2);
+}
+
+input[type="checkbox"],
+input[type="checkbox"]:checked {
+  accent-color: var(--primary-blue);
+  cursor: pointer;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.material-symbols-outlined {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.footer {
+  text-align: center;
+}

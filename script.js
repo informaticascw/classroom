@@ -28,7 +28,6 @@ const SELECTORS = {
     SETTING_DRAFT: '#setting_draft',
     SETTING_ADD_CLASSNAME: '#setting_add_classname',
     LOG_CONTENT: '#logcontent',
-    LOG_CONTAINER: '#logcontainer',
     // Generic containers (role-based)
     COURSE_CONTAINER: '[data-js-role="course"]',
     // Course elements
@@ -161,7 +160,6 @@ function handleSignoutClick() {
 async function handleSelectCourse(selectObject) {
     let courseId = selectObject.value;
     console.log(`user selected courseId ${courseId}`);
-    //console.log(selectObject);
 
     // update course link
     let courseContainer = selectObject.closest(SELECTORS.COURSE_CONTAINER);
@@ -424,10 +422,9 @@ class MaterialList {
 
         // log element in DOM
         let logElement = document.querySelector(SELECTORS.LOG_CONTENT)
-        let logContainer = document.querySelector(SELECTORS.LOG_CONTAINER)
         const appendLog = (message) => {
             logElement.textContent += message;
-            logContainer.scrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+            logElement.scrollTop = logElement.scrollHeight - logElement.clientHeight;
         };
         logElement.textContent =`Start copying!\n`;
         appendLog('');

@@ -65,9 +65,6 @@ const AppState = {
     isGisInited: false
 };
 
-document.querySelector(SELECTORS.AUTHORIZE_BTN).style.display = 'none';
-document.querySelector(SELECTORS.SIGNOUT_BTN).style.display = 'none';
-
 /**
  * Callback after api.js is loaded.
  */

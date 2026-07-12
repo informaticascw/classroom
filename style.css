@@ -167,6 +167,8 @@ label {
   flex-shrink: 0;
 }
 
-.footer {
+.footer, .footer a , .footer a:visited {
   text-align: center;
+  color: var(--text-secondary);
 }
+
